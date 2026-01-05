@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Shirt } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Shirt, LayoutList, Layers, BadgeDollarSign, Phone  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -28,17 +28,32 @@ const mainNavItems: NavItem[] = [
         href: '/Products',
         icon: Shirt,
     },
+    {
+        title: 'Kategori',
+        href: '/Category',
+        icon: LayoutList,
+    },
+    {
+        title: 'Manajemen Stok',
+        href: '/ManageStock',
+        icon: Layers,
+    },
+    {
+        title: 'POS',
+        href: '/POS',
+        icon: BadgeDollarSign,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
+        title: 'Kontak Bantuan',
+        href: 'https://wa.me/089506495890?text=Halo%20Kak,%20Saya ingin meminta bantuan mengenai fitur ...',
+        icon: Phone,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: 'Panduan Web',
+        href: 'https://github.com/ObiKusakabe/inv-dev',
         icon: BookOpen,
     },
 ];
