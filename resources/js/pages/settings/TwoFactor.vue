@@ -44,21 +44,18 @@ onUnmounted(() => {
         <SettingsLayout>
             <div class="space-y-6">
                 <HeadingSmall
-                    title="Two-Factor Authentication"
-                    description="Manage your two-factor authentication settings"
+                    title="Verifikasi 2 Langkah"
+                    description="Kelola pengaturan autentikasi verifikasi 2 langkah Anda"
                 />
 
                 <div
                     v-if="!twoFactorEnabled"
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="destructive">Disabled</Badge>
+                    <Badge variant="destructive">2FA Nonaktif</Badge>
 
                     <p class="text-muted-foreground">
-                        When you enable two-factor authentication, you will be
-                        prompted for a secure pin during login. This pin can be
-                        retrieved from a TOTP-supported application on your
-                        phone.
+                        Saat Anda mengaktifkan otentikasi dua faktor, Anda akan diminta memasukkan PIN aman saat masuk. PIN ini dapat diperoleh dari aplikasi yang mendukung TOTP di ponsel Anda.
                     </p>
 
                     <div>
@@ -75,7 +72,7 @@ onUnmounted(() => {
                             #default="{ processing }"
                         >
                             <Button type="submit" :disabled="processing">
-                                <ShieldCheck />Enable 2FA</Button
+                                <ShieldCheck />Aktifkan 2FA</Button
                             ></Form
                         >
                     </div>
@@ -85,7 +82,7 @@ onUnmounted(() => {
                     v-else
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="default">Enabled</Badge>
+                    <Badge variant="default">2FA Aktif</Badge>
 
                     <p class="text-muted-foreground">
                         With two-factor authentication enabled, you will be
@@ -104,7 +101,7 @@ onUnmounted(() => {
                                 :disabled="processing"
                             >
                                 <ShieldBan />
-                                Disable 2FA
+                                Nonaktifkan 2FA
                             </Button>
                         </Form>
                     </div>

@@ -42,11 +42,10 @@ onMounted(async () => {
     <Card class="w-full">
         <CardHeader>
             <CardTitle class="flex gap-3">
-                <LockKeyhole class="size-4" />2FA Recovery Codes
+                <LockKeyhole class="size-4" />Kode Pemulihan 2FA
             </CardTitle>
             <CardDescription>
-                Recovery codes let you regain access if you lose your 2FA
-                device. Store them in a secure password manager.
+                Kode pemulihan memungkinkan Anda mendapatkan kembali akses jika Anda kehilangan perangkat 2FA Anda. Simpan kode tersebut di pengelola kata sandi yang aman.
             </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,8 +57,7 @@ onMounted(async () => {
                         :is="isRecoveryCodesVisible ? EyeOff : Eye"
                         class="size-4"
                     />
-                    {{ isRecoveryCodesVisible ? 'Hide' : 'View' }} Recovery
-                    Codes
+                    {{ isRecoveryCodesVisible ? 'Sembunyikan' : 'Tampilkan' }} Kode Pemulihan
                 </Button>
 
                 <Form
@@ -75,7 +73,7 @@ onMounted(async () => {
                         type="submit"
                         :disabled="processing"
                     >
-                        <RefreshCw /> Regenerate Codes
+                        <RefreshCw /> Buat ulang kode baru
                     </Button>
                 </Form>
             </div>
@@ -111,10 +109,8 @@ onMounted(async () => {
                         </div>
                     </div>
                     <p class="text-xs text-muted-foreground select-none">
-                        Each recovery code can be used once to access your
-                        account and will be removed after use. If you need more,
-                        click
-                        <span class="font-bold">Regenerate Codes</span> above.
+                        Setiap kode pemulihan hanya dapat digunakan sekali untuk mengakses akun Anda dan akan dihapus setelah digunakan. Jika Anda membutuhkan lebih banyak, klik
+                        <span class="font-bold">Buat ulang kode baru</span> di atas.
                     </p>
                 </div>
             </div>

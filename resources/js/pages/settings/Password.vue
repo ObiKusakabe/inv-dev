@@ -27,8 +27,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
         <SettingsLayout>
             <div class="space-y-6">
                 <HeadingSmall
-                    title="Update password"
-                    description="Ensure your account is using a long, random password to stay secure"
+                    title="Perbarui kata sandi"
+                    description="Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman."
                 />
 
                 <Form
@@ -46,34 +46,34 @@ const breadcrumbItems: BreadcrumbItem[] = [
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
                     <div class="grid gap-2">
-                        <Label for="current_password">Current password</Label>
+                        <Label for="current_password">Sandi saat ini</Label>
                         <Input
                             id="current_password"
                             name="current_password"
                             type="password"
                             class="mt-1 block w-full"
                             autocomplete="current-password"
-                            placeholder="Current password"
+                            placeholder="Sandi saat ini"
                         />
                         <InputError :message="errors.current_password" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="password">New password</Label>
+                        <Label for="password">Sandi baru</Label>
                         <Input
                             id="password"
                             name="password"
                             type="password"
                             class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="New password"
+                            placeholder="Sandi baru"
                         />
                         <InputError :message="errors.password" />
                     </div>
 
                     <div class="grid gap-2">
                         <Label for="password_confirmation"
-                            >Confirm password</Label
+                            >Konfirmasi sandi</Label
                         >
                         <Input
                             id="password_confirmation"
@@ -81,7 +81,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             type="password"
                             class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="Confirm password"
+                            placeholder="Ketik ulang sandi baru"
                         />
                         <InputError :message="errors.password_confirmation" />
                     </div>
@@ -90,7 +90,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         <Button
                             :disabled="processing"
                             data-test="update-password-button"
-                            >Save password</Button
+                            >Simpan sandi</Button
                         >
 
                         <Transition

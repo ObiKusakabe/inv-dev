@@ -55,17 +55,17 @@ const modalConfig = computed<{
 
     if (showVerificationStep.value) {
         return {
-            title: 'Verify Authentication Code',
-            description: 'Enter the 6-digit code from your authenticator app',
+            title: 'Verifikasi Kode Autentikasi',
+            description: 'Masukkan kode 6 digit dari aplikasi Autentikasi Anda',
             buttonText: 'Continue',
         };
     }
 
     return {
-        title: 'Enable Two-Factor Authentication',
+        title: 'Aktivasi Verifikasi 2 Langkah',
         description:
-            'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-        buttonText: 'Continue',
+            'Untuk lanjut pengaktifan keamanan ini, pindai kode QR atau masukkan kode di bawah ke aplikasi autentikator Anda',
+        buttonText: 'Berikutnya',
     };
 });
 
@@ -190,7 +190,7 @@ watch(
                                 class="absolute inset-0 top-1/2 h-px w-full bg-border"
                             />
                             <span class="relative bg-card px-2 py-1"
-                                >or, enter the code manually</span
+                                >atau, masukkan kode secara manual</span
                             >
                         </div>
 
@@ -260,10 +260,7 @@ watch(
                                     </InputOTPGroup>
                                 </InputOTP>
                                 <InputError
-                                    :message="
-                                        errors?.confirmTwoFactorAuthentication
-                                            ?.code
-                                    "
+                                    :message="errors?.confirmTwoFactorAuthentication?.code"
                                 />
                             </div>
 
@@ -275,14 +272,14 @@ watch(
                                     @click="showVerificationStep = false"
                                     :disabled="processing"
                                 >
-                                    Back
+                                    Kembali
                                 </Button>
                                 <Button
                                     type="submit"
                                     class="w-auto flex-1"
                                     :disabled="processing || code.length < 6"
                                 >
-                                    Confirm
+                                    Konfirmasi
                                 </Button>
                             </div>
                         </div>

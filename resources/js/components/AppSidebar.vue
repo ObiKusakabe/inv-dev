@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Shirt, LayoutList, Layers, BadgeDollarSign, Phone  } from 'lucide-vue-next';
+import { BookOpen, LayoutGrid, Shirt, LayoutList, Layers, BadgeDollarSign, Phone  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [

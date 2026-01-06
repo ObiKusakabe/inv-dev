@@ -39,8 +39,8 @@ const user = page.props.auth.user;
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
-                    title="Profile information"
-                    description="Update your name and email address"
+                    title="Informasi Profil"
+                    description="Perbarui informasi profil Anda"
                 />
 
                 <Form
@@ -49,7 +49,7 @@ const user = page.props.auth.user;
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
                     <div class="grid gap-2">
-                        <Label for="name">Name</Label>
+                        <Label for="name">Nama</Label>
                         <Input
                             id="name"
                             class="mt-1 block w-full"
@@ -57,13 +57,13 @@ const user = page.props.auth.user;
                             :default-value="user.name"
                             required
                             autocomplete="name"
-                            placeholder="Full name"
+                            placeholder="Nama lengkap"
                         />
                         <InputError class="mt-2" :message="errors.name" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
+                        <Label for="email">Email</Label>
                         <Input
                             id="email"
                             type="email"
@@ -72,7 +72,7 @@ const user = page.props.auth.user;
                             :default-value="user.email"
                             required
                             autocomplete="username"
-                            placeholder="Email address"
+                            placeholder="Alamat email"
                         />
                         <InputError class="mt-2" :message="errors.email" />
                     </div>
@@ -102,7 +102,7 @@ const user = page.props.auth.user;
                         <Button
                             :disabled="processing"
                             data-test="update-profile-button"
-                            >Save</Button
+                            >Simpan</Button
                         >
 
                         <Transition
@@ -115,7 +115,7 @@ const user = page.props.auth.user;
                                 v-show="recentlySuccessful"
                                 class="text-sm text-neutral-600"
                             >
-                                Saved.
+                                Tersimpan.
                             </p>
                         </Transition>
                     </div>
