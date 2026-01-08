@@ -24,7 +24,7 @@ const sidebarNavItems: NavItem[] = [
         href: show(),
     },
     {
-        title: 'Penampilan',
+        title: 'Tampilan',
         href: editAppearance(),
     },
 ];

@@ -23,7 +23,7 @@ defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Pengaturan profil',
         href: edit().url,
     },
 ];
@@ -34,7 +34,7 @@ const user = page.props.auth.user;
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Profile settings" />
+        <Head title="Pengaturan profil" />
 
         <SettingsLayout>
             <div class="flex flex-col space-y-6">

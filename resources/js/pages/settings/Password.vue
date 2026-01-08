@@ -14,7 +14,7 @@ import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
+        title: 'Pengaturan kata sandi',
         href: edit().url,
     },
 ];
@@ -22,7 +22,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Password settings" />
+        <Head title="Pengaturan kata sandi" />
 
         <SettingsLayout>
             <div class="space-y-6">

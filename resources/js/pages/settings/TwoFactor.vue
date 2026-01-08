@@ -25,7 +25,7 @@ withDefaults(defineProps<Props>(), {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Two-Factor Authentication',
+        title: 'Verifikasi 2 Langkah',
         href: show.url(),
     },
 ];
@@ -40,7 +40,7 @@ onUnmounted(() => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Two-Factor Authentication" />
+        <Head title="Verifikasi 2 Langkah" />
         <SettingsLayout>
             <div class="space-y-6">
                 <HeadingSmall

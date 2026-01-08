@@ -259,8 +259,9 @@ watch(
                                         />
                                     </InputOTPGroup>
                                 </InputOTP>
+                                <!-- NOTEEEEEEEEEEEEEEEEE ASALNYA ERROR DIGANTI DITAMBAH ['..'] -->
                                 <InputError
-                                    :message="errors?.confirmTwoFactorAuthentication?.code"
+                                    :message="errors?.['confirmTwoFactorAuthentication.code']"
                                 />
                             </div>
 
