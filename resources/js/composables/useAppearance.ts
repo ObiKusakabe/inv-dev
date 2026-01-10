@@ -1,24 +1,30 @@
 import { onMounted, ref } from 'vue';
 
-type Appearance = 'light' | 'dark' | 'system';
+type Appearance = 'light' | 'dark' | 'nanana' | 'system';
 
 export function updateTheme(value: Appearance) {
     if (typeof window === 'undefined') {
         return;
     }
 
-    if (value === 'system') {
-        const mediaQueryList = window.matchMedia(
-            '(prefers-color-scheme: dark)',
-        );
-        const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
+    const root = document.documentElement;
 
-        document.documentElement.classList.toggle(
-            'dark',
-            systemTheme === 'dark',
-        );
-    } else {
-        document.documentElement.classList.toggle('dark', value === 'dark');
+    // reset semua theme class dulu
+    root.classList.remove('dark', 'nanana');
+
+    if (value === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        root.classList.add(isDark ? 'dark' : 'light');
+        return;
+    }
+
+    if (value === 'nanana') {
+        root.classList.add('nanana');
+        return;
+    }
+
+    if (value === 'dark') {
+        root.classList.add('dark');
     }
 }
 

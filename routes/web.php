@@ -5,6 +5,9 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\StockManagementController;
+use App\Http\Controllers\POSController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -17,8 +20,18 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function(){
+
     Route::get('/products', [ProductController::class, 'index'])
         ->name('products.index');
+
+    Route::get('/category', [CategoryController::class, 'index'])
+        ->name('category.index');
+
+    Route::get('/stockManagement', [StockManagementController::class, 'index'])
+        ->name('stockManagement.index');
+
+    Route::get('/pos', [POSController::class, 'index'])
+        ->name('pos.index');
 });
 
 require __DIR__.'/settings.php';

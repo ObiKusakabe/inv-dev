@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useAppearance } from '@/composables/useAppearance';
-import { Monitor, Moon, Sun } from 'lucide-vue-next';
+import { Monitor, Moon, Sun, Shirt } from 'lucide-vue-next';
 
 const { appearance, updateAppearance } = useAppearance();
 
 const tabs = [
+    { value: 'nanana', Icon: Shirt, label: 'Nanana' },
     { value: 'light', Icon: Sun, label: 'Cerah' },
     { value: 'dark', Icon: Moon, label: 'Gelap' },
     { value: 'system', Icon: Monitor, label: 'Sistem' },

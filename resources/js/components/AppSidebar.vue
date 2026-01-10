@@ -12,7 +12,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { index } from '@/routes/products';
+import  products  from '@/routes/products';
+import  category  from '@/routes/category';
+import  stockManagement  from '@/routes/stockManagement';
+import  pos  from '@/routes/pos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, LayoutGrid, Shirt, LayoutList, Layers, BadgeDollarSign, Phone  } from 'lucide-vue-next';
@@ -26,22 +29,22 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Pakaian',
-        href: index(),
+        href: products.index().url,
         icon: Shirt,
     },
     {
         title: 'Kategori',
-        href: '/Category',
+        href: category.index().url,
         icon: LayoutList,
     },
     {
         title: 'Manajemen Stok',
-        href: '/ManageStock',
+        href: stockManagement.index().url,
         icon: Layers,
     },
     {
         title: 'POS',
-        href: '/POS',
+        href: pos.index().url,
         icon: BadgeDollarSign,
     },
 ];
@@ -68,8 +71,6 @@ const footerNavItems: NavItem[] = [
                     <SidebarMenuButton size="lg" as-child>
                         <Link :href="dashboard()">
                             <AppLogo />
-                        </Link>
-                        <Link :href="index()">
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
