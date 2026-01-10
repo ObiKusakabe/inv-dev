@@ -29,22 +29,22 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Pakaian',
-        href: products.index().url,
+        href: products.index(),
         icon: Shirt,
     },
     {
         title: 'Kategori',
-        href: category.index().url,
+        href: category.index(),
         icon: LayoutList,
     },
     {
         title: 'Manajemen Stok',
-        href: stockManagement.index().url,
+        href: stockManagement.index(),
         icon: Layers,
     },
     {
         title: 'POS',
-        href: pos.index().url,
+        href: pos.index(),
         icon: BadgeDollarSign,
     },
 ];
