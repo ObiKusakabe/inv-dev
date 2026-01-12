@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import category from '@/routes/category';
+import invoices from '@/routes/invoices';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Kategori',
-        href: category.index().url,
+        title: 'Transaksi & Tagihan',
+        href: invoices.index(),
     },
 ];
 //
@@ -17,9 +17,6 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -54,33 +51,39 @@ import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-vue-next';
 import { h, ref } from 'vue';
 export interface Payment {
     id: string;
-    kategori: string;
-    status: 'aktif' | 'non-aktif';
-    tglDibuat: string;
+    kodeInvoice: string;
+    status: 'lunas' | 'belum lunas';
+    tglDibuat: string;  
 }
 const data: Payment[] = [
     {
         id: 'm5gr84i9',
-        kategori: 'vest',
-        status: 'aktif',
+        kodeInvoice: 'CBG1  -010126-0001',
+        status: 'lunas',
         tglDibuat: '7 Januari 2006',
     },
     {
         id: '3u1reuv4',
-        kategori: 'bawahan',
-        status: 'non-aktif',
+        kodeInvoice: 'CBG2-020226-0001',
+        status: 'lunas',
         tglDibuat: '10 Januari 2006',
     },
     {
         id: 'derv1ws0',
-        kategori: 'atasan',
-        status: 'non-aktif',
+        kodeInvoice: 'CBG1-010126-0002',
+        status: 'belum lunas',
         tglDibuat: '12 Januari 2006',
     },
     {
+        id: '5kma53ae',
+        kodeInvoice: 'CBG2-010126-0001',
+        status: 'lunas',
+        tglDibuat: '9 Januari 2006',
+    },
+    {
         id: 'bhqecj4p',
-        kategori: 'one set',
-        status: 'aktif',
+        kodeInvoice: 'CBG2-010126-0002',
+        status: 'belum lunas',
         tglDibuat: '5 Januari 2006',
     },
 ];
@@ -112,7 +115,7 @@ const columns: ColumnDef<Payment>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: 'kategori',
+        accessorKey: 'kodeInvoice',
         header: ({ column }) => {
             return h(
                 Button,
@@ -121,11 +124,11 @@ const columns: ColumnDef<Payment>[] = [
                     onClick: () =>
                         column.toggleSorting(column.getIsSorted() === 'asc'),
                 },
-                () => ['Kategori', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
+                () => ['Kode Invoice', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
             );
         },
         cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('kategori')),
+            h('div', { class: 'capitalize' }, row.getValue('kodeInvoice')),
     },
     {
         accessorKey: 'tglDibuat',
@@ -162,13 +165,13 @@ const columns: ColumnDef<Payment>[] = [
             return h(
                 Badge,
                 {
-                    variant: status === 'aktif' ? 'secondary' : 'success',
-                    // class:
-                    //     status === 'aktif'
-                    //         ? 'bg-green-500 text-white'
-                    //         : 'bg-gray-400 text-white',
+                    variant: status === 'lunas' ? 'success' : 'destructive',
+                    class:
+                        status === 'lunas'
+                            ? 'bg-green-500 text-white'
+                            : '',
                 },
-                () => (status === 'aktif' ? 'Aktif' : 'Nonaktif'),
+                () => (status === 'lunas' ? 'lunas' : 'belum lunas'),
             );
         },
 
@@ -250,41 +253,20 @@ function copy(id: string) {
 </script>
 
 <template>
-    <Head title="Kategori" />
+    <Head title="Invoice" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
-            <DefineTemplate v-slot="{ payment }">
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <Button variant="ghost" class="h-8 w-8 p-0">
-                            <span class="sr-only">Open menu</span>
-                            <MoreHorizontal class="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuItem @click="copy(payment.id)">
-                            Copy payment ID
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>View customer</DropdownMenuItem>
-                        <DropdownMenuItem
-                            >View payment details</DropdownMenuItem
-                        >
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </DefineTemplate>
             <div class="w-full">
                 <div class="flex items-center py-4">
                     <Input
                         class="max-w-sm"
-                        placeholder="Cari Kategori..."
+                        placeholder="Cari kode invoice..."
                         :model-value="
-                            table.getColumn('kategori')?.getFilterValue() as string
+                            table.getColumn('kodeInvoice')?.getFilterValue() as string
                         "
                         @update:model-value="
-                            table.getColumn('kategori')?.setFilterValue($event)
+                            table.getColumn('kodeInvoice')?.setFilterValue($event)
                         "
                     />
                     <DropdownMenu>

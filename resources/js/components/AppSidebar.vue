@@ -16,16 +16,19 @@ import  products  from '@/routes/products';
 import  category  from '@/routes/category';
 import  stockManagement  from '@/routes/stockManagement';
 import  pos  from '@/routes/pos';
+import  invoices  from '@/routes/invoices';
+import  supplierData  from '@/routes/supplierData';
+import  invoices  from '@/routes/invoices';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, LayoutGrid, Shirt, LayoutList, Layers, BadgeDollarSign, Phone  } from 'lucide-vue-next';
+import { BookOpen, ChartPie, Shirt, LayoutList, Layers, BadgeDollarSign, Phone, ScrollText  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
-        icon: LayoutGrid,
+        icon: ChartPie,
     },
     {
         title: 'Pakaian',
@@ -46,6 +49,21 @@ const mainNavItems: NavItem[] = [
         title: 'POS',
         href: pos.index(),
         icon: BadgeDollarSign,
+    },
+    {
+        title: 'Transaksi & Tagihan',
+        href: invoices.index(),
+        icon: ScrollText,
+    },
+    {
+        title: 'Data Supplier',
+        href: supplierData.index(),
+        icon: ScrollText,
+    },
+    {
+        title: 'Laporan',
+        href: invoices.index(),
+        icon: ScrollText,
     },
 ];
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StockManagementController;
 use App\Http\Controllers\POSController;
+use App\Http\Controllers\InvoiceController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -32,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function(){
 
     Route::get('/pos', [POSController::class, 'index'])
         ->name('pos.index');
+
+    Route::get('/invoices', [InvoiceController::class, 'index'])
+        ->name('invoices.index');
 });
 
 require __DIR__.'/settings.php';
