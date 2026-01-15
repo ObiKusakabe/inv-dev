@@ -10,7 +10,7 @@ import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { BookOpen, LogOut, Settings, Phone } from 'lucide-vue-next';
 
 interface Props {
     user: User;
@@ -36,6 +36,28 @@ defineProps<Props>();
                 <Settings class="mr-2 h-4 w-4" />
                 Pengaturan
             </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem :as-child="true">
+            <a
+                class="flex w-full items-center"
+                href="https://wa.me/089506495890?text=Halo%20Kak,%20Saya%20ingin%20meminta%20bantuan%20mengenai%20fitur%20..."
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <Phone class="mr-2 h-4 w-4" />
+                Kontak Bantuan
+            </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem :as-child="true">
+            <a
+                class="flex w-full items-center"
+                href="https://github.com/ObiKusakabe/inv-dev"
+                target="_blank"
+                rel="noopener"
+            >
+                <BookOpen class="mr-2 h-4 w-4" />
+                Panduan Web
+            </a>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

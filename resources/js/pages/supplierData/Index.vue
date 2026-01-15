@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import stockManagement from '@/routes/stockManagement';
+import supplierData from '@/routes/supplierData';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Manajemen Stok',
-        href: stockManagement.index().url,
+        title: 'Data Supplier',
+        href: supplierData.index().url,
     },
 ];
 //
@@ -17,9 +17,6 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    // DropdownMenuItem,
-    // DropdownMenuLabel,
-    // DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -272,7 +269,7 @@ function deleteCategory(id: string) {
 </script>
 
 <template>
-    <Head title="Stok" />
+    <Head title="Supplier" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">

@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'supplier_id',
     ];
 
     /**
@@ -48,5 +50,26 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    // helper
+    public function isOwner()
+    {
+        return $this->role === 'owner';
+    }
+
+    public function isSupplier()
+    {
+        return $this->role === 'supplier';
     }
 }

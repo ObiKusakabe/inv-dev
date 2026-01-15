@@ -7,7 +7,7 @@ import { Head } from '@inertiajs/vue3';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Transaksi & Tagihan',
-        href: invoices.index(),
+        href: invoices.index().url,
     },
 ];
 //
@@ -87,7 +87,7 @@ const data: Payment[] = [
         tglDibuat: '5 Januari 2006',
     },
 ];
-const [DefineTemplate] = createReusableTemplate<{
+const [] = createReusableTemplate<{
     payment: {
         id: string;
     };
@@ -247,9 +247,9 @@ const table = useVueTable({
         },
     },
 });
-function copy(id: string) {
-    navigator.clipboard.writeText(id);
-}
+// function copy(id: string) {
+//     navigator.clipboard.writeText(id);
+// }
 </script>
 
 <template>
@@ -352,7 +352,7 @@ function copy(id: string) {
                                         <Button
                                             variant="outline"
                                             class="gap-2"
-                                            @click="createCategory"
+                                            @click="createCategory()"
                                         >
                                             + Tambah Kategori
                                         </Button>

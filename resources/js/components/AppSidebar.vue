@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NavFooter from '@/components/NavFooter.vue';
+// import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -18,67 +18,123 @@ import  stockManagement  from '@/routes/stockManagement';
 import  pos  from '@/routes/pos';
 import  invoices  from '@/routes/invoices';
 import  supplierData  from '@/routes/supplierData';
-import  invoices  from '@/routes/invoices';
+import  summary  from '@/routes/summary';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, ChartPie, Shirt, LayoutList, Layers, BadgeDollarSign, Phone, ScrollText  } from 'lucide-vue-next';
+import { ChartPie, Shirt, LayoutList, Layers, BadgeDollarSign, ScrollText, FileBox, NotebookTabs  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
+// const mainNavItems: NavItem[] = [
+//     {
+//         title: 'Dashboard',
+//         href: dashboard(),
+//         icon: ChartPie,
+//     },
+//     {
+//         title: 'Pakaian',
+//         href: products.index(),
+//         icon: Shirt,
+//     },
+//     {
+//         title: 'Kategori',
+//         href: category.index(),
+//         icon: LayoutList,
+//     },
+//     {
+//         title: 'Manajemen Stok',
+//         href: stockManagement.index(),
+//         icon: Layers,
+//     },
+//     {
+//         title: 'POS',
+//         href: pos.index(),
+//         icon: BadgeDollarSign,
+//     },
+//     {
+//         title: 'Transaksi & Tagihan',
+//         href: invoices.index(),
+//         icon: ScrollText,
+//     },
+//     {
+//         title: 'Data Supplier',
+//         href: supplierData.index(),
+//         icon: FileBox,
+//     },
+//     {
+//         title: 'Laporan',
+//         href: summary.index(),
+//         icon: NotebookTabs,
+//     },
+// ];
+
+type NavGroup = {
+    label: string;
+    items: NavItem[];
+};
+
+const mainNavGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: ChartPie,
+        label: 'Analitik',
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: ChartPie,
+            },
+        ],
     },
     {
-        title: 'Pakaian',
-        href: products.index(),
-        icon: Shirt,
+        label: 'Inventaris',
+        items: [
+            {
+                title: 'Pakaian',
+                href: products.index(),
+                icon: Shirt,
+            },
+            {
+                title: 'Manajemen Stok',
+                href: stockManagement.index(),
+                icon: Layers,
+            },
+            {
+                title: 'Kategori',
+                href: category.index(),
+                icon: LayoutList,
+            },
+            {
+                title: 'Data Supplier',
+                href: supplierData.index(),
+                icon: FileBox,
+            },
+        ],
     },
     {
-        title: 'Kategori',
-        href: category.index(),
-        icon: LayoutList,
+        label: 'Penjualan',
+        items: [
+            {
+                title: 'POS',
+                href: pos.index(),
+                icon: BadgeDollarSign,
+            },
+            {
+                title: 'Transaksi & Tagihan',
+                href: invoices.index(),
+                icon: ScrollText,
+            },
+        ],
     },
     {
-        title: 'Manajemen Stok',
-        href: stockManagement.index(),
-        icon: Layers,
-    },
-    {
-        title: 'POS',
-        href: pos.index(),
-        icon: BadgeDollarSign,
-    },
-    {
-        title: 'Transaksi & Tagihan',
-        href: invoices.index(),
-        icon: ScrollText,
-    },
-    {
-        title: 'Data Supplier',
-        href: supplierData.index(),
-        icon: ScrollText,
-    },
-    {
-        title: 'Laporan',
-        href: invoices.index(),
-        icon: ScrollText,
+        label: 'Laporan',
+        items: [
+            {
+                title: 'Laporan',
+                href: summary.index(),
+                icon: NotebookTabs,
+            },
+        ],
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Kontak Bantuan',
-        href: 'https://wa.me/089506495890?text=Halo%20Kak,%20Saya ingin meminta bantuan mengenai fitur ...',
-        icon: Phone,
-    },
-    {
-        title: 'Panduan Web',
-        href: 'https://github.com/ObiKusakabe/inv-dev',
-        icon: BookOpen,
-    },
-];
 </script>
 
 <template>
@@ -96,11 +152,10 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :groups="mainNavGroups" />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
