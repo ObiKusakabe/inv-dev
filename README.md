@@ -20,7 +20,6 @@ install php nya pake laragon biar simple
 [Download Laragon v8.4.0 - Full (228 MB)](https://github.com/leokhoa/laragon/releases/download/8.4.0/laragon-wamp.exe)
 
 buka laragon, klik mouse kanan pada bagian kosong, lalu ikuti arahan
-![InkedbZpj0sUT61_LI](https://github.com/user-attachments/assets/4c8368f6-de67-437a-8d07-20d2c70da454)
 <img width="1144" height="652" alt="bZpj0sUT61" src="https://github.com/user-attachments/assets/4237ad14-e0d4-48d5-9c4f-2be0fa49df42" />
 - Install node js
 [Node.js v22.22.0](https://nodejs.org/dist/v22.22.0/node-v22.22.0-x64.msi)
