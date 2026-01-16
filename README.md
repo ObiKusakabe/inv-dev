@@ -22,24 +22,29 @@ jalankan kode ini di terminal CMD/GitBash
   buka laragon, klik mouse kanan pada bagian kosong, lalu ikuti arahan
   <img width="1144" height="652" alt="bZpj0sUT61" src="https://github.com/user-attachments/assets/4237ad14-e0d4-48d5-9c4f-2be0fa49df42" />
   setelah download php via laragon, file php akan tertera di folder ini:
-
-  **C:\laragon\bin\php**
-
+  ```bash
+  C:\laragon\bin\php
+  ```
+  
   copy folder php versi ini (8.4):
-
-  **php-8.4.12-nts-Win32-vs17-x64**
+  ```bash
+  php-8.4.12-nts-Win32-vs17-x64
+  ```
 
   paste di folder
-  
+  ```bash
   C:\
+  ```
     
   dan rename nama folder yang panjang itu jadi
-
-  **php**
+  ```bash
+  php
+  ```
 
   nanti akan jadi seperti ini
-
+  ```bash
   C:\php
+  ```
   
 - Install node js
 [Node.js v22.22.0](https://nodejs.org/dist/v22.22.0/node-v22.22.0-x64.msi)
