@@ -15,8 +15,10 @@ Tujuan utama pengembangan aplikasi ini adalah untuk membantu Nanana Collection d
 jalankan kode ini di terminal CMD/GitBash
 
 - Install php
+
 install php nya pake laragon biar simple
 [Download Laragon v8.4.0 - Full (228 MB)](https://github.com/leokhoa/laragon/releases/download/8.4.0/laragon-wamp.exe)
+
 buka laragon, klik kanan pada bagian kosong, lalu ikuti arahan
 ![InkedbZpj0sUT61_LI](https://github.com/user-attachments/assets/4c8368f6-de67-437a-8d07-20d2c70da454)
 <img width="1144" height="652" alt="bZpj0sUT61" src="https://github.com/user-attachments/assets/4237ad14-e0d4-48d5-9c4f-2be0fa49df42" /><img width="1144" height="652" alt="image" src="https://github.com/user-attachments/assets/0fb73416-f89d-41c0-baf2-2901903da29e" /><img width="1027" height="653" alt="image" src="https://github.com/user-attachments/assets/2c16800e-5445-41a7-b834-11c72a8a27f7" />
