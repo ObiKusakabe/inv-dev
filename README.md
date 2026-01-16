@@ -45,6 +45,15 @@ jalankan kode ini di terminal CMD/GitBash
   ```bash
   C:\php
   ```
+
+  setelah php di folder yang seharusnya, lanjut tambah path
+  1. Buka Control Panel.
+  2. Pilih System and Security kemudian System.
+  3. Klik pada Advanced system settings di sisi kiri.
+  4. Di tab Advanced, klik Environment Variables.
+  5. Di bawah System Variables, cari dan pilih Path, lalu klik Edit.
+  6. Klik New dan tambahkan path direktori PHP (misalnya C:\PHP).
+  7. Klik OK di semua dialog untuk menyimpan perubahan.
   
 - Install node js
 [Node.js v22.22.0](https://nodejs.org/dist/v22.22.0/node-v22.22.0-x64.msi)
