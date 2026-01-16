@@ -21,7 +21,8 @@ jalankan kode ini di terminal CMD/GitBash
 buka laragon, klik mouse kanan pada bagian kosong, lalu ikuti arahan
 <img width="1144" height="652" alt="bZpj0sUT61" src="https://github.com/user-attachments/assets/4237ad14-e0d4-48d5-9c4f-2be0fa49df42" />
 setelah download php via laragon, file php akan tertera di folder ini:
-C:\laragon\bin\php\<2-folder-php-berbeda-versi>
+
+**C:\laragon\bin\php\<2-folder-php-berbeda-versi>**
 - Install node js
 [Node.js v22.22.0](https://nodejs.org/dist/v22.22.0/node-v22.22.0-x64.msi)
 
