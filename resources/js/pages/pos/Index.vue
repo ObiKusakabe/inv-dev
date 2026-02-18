@@ -3,78 +3,56 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import pos from '@/routes/pos';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { provide, ref } from 'vue';
-// import OrderPanel from './components/OrderPanel.vue';
-// import ProductGrid from './components/ProductGrid.vue';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
+import ProductGrid from './components/ProductGrid.vue';
+import OrderPanel from './components/OrderPanel.vue';
 
-export interface CartItem {
-    id: number;
+export interface Product {
+    id: number | string;
     name: string;
     price: number;
-    qty: number;
+    stock?: number;
+    image?: string | null;
+    description?: string | null;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { 
-        title: 'POS',
-        href: pos.index().url, 
-    }];
+const props = defineProps<{
+    products?: Product[]; // nanti dari backend
+}>();
 
-const cart = ref<CartItem[]>([]);
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'POS', href: pos.index().url }];
 
-function addToCart(product: Omit<CartItem, 'qty'>) {
-    const item = cart.value.find((i) => i.id === product.id);
-    if (item) item.qty++;
-    else cart.value.push({ ...product, qty: 1 });
-}
+// Fallback dummy (biar UI nyala dulu). Nanti diganti props.products dari backend.
+const fallbackProducts: Product[] = [
+    { id: 1, name: 'Kaos Polos', price: 50000, stock: 10, description: 'Cotton combed' },
+    { id: 2, name: 'Hoodie', price: 150000, stock: 5, description: 'Fleece nyaman' },
+    { id: 3, name: 'Jaket', price: 250000, stock: 0, description: 'Out of stock test' },
+    { id: 4, name: 'Kemeja', price: 120000, stock: 7, description: 'Slim fit' },
+];
 
-function removeFromCart(id: number) {
-    cart.value = cart.value.filter((i) => i.id !== id);
-}
-
-function updateQty(id: number, qty: number) {
-    const item = cart.value.find((i) => i.id === id);
-    if (item && qty > 0) item.qty = qty;
-}
-
-provide('cart', cart);
-provide('addToCart', addToCart);
-provide('removeFromCart', removeFromCart);
-provide('updateQty', updateQty);
+const products = props.products?.length ? props.products : fallbackProducts;
 </script>
 
 <template>
     <Head title="POS" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <!-- <div class="grid grid-cols-12 gap-4 p-4">
-            <div class="col-span-8">
-                POS
+        <div v-if="$page.props.flash?.success"
+     class="mb-4 rounded-md bg-green-100 px-4 py-2 text-sm text-green-800">
+  {{ $page.props.flash.success }}
+</div>
 
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <!-- LEFT: Products -->
+            <div class="lg:col-span-8">
+                <div class="rounded-lg border bg-white p-4">
+                    <h1 class="mb-4 text-xl font-semibold">Point of Sale</h1>
+                    <ProductGrid :products="products" />
+                </div>
             </div>
-            <div class="col-span-4">
 
-            </div>
-        </div> -->
-        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>
-            <div
-                class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <PlaceholderPattern />
+            <!-- RIGHT: Order -->
+            <div class="lg:col-span-4">
+                <OrderPanel />
             </div>
         </div>
     </AppLayout>

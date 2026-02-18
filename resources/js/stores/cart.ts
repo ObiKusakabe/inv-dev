@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-
+import { computed, ref } from 'vue';
 
 export interface CartItem {
     id: string | number;
@@ -8,74 +7,129 @@ export interface CartItem {
     price: number;
     qty: number;
     image?: string | null;
+    stock?: number; // optional, buat limit qty nantinya
 }
+
+const STORAGE_KEY = 'inv-dev.cart';
 
 export const useCartStore = defineStore('cart', () => {
     const items = ref<CartItem[]>([]);
 
-
-    // load from localStorage (simple persistence)
+    // Load from localStorage
     if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('pos_cart');
-        if (saved) {
-            try { items.value = JSON.parse(saved); } catch (e) { items.value = []; }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+            if (raw) items.value = JSON.parse(raw) as CartItem[];
+        } catch {
+            // ignore
         }
     }
-
 
     function persist() {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('pos_cart', JSON.stringify(items.value));
-        }
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value));
     }
-
 
     function findIndex(id: string | number) {
-        return items.value.findIndex(i => i.id === id);
+        return items.value.findIndex((i) => i.id === id);
     }
 
-
-    function add(payload: { id: string | number; name: string; price: number; image?: string | null }) {
+    function add(payload: Omit<CartItem, 'qty'>, qty = 1) {
         const idx = findIndex(payload.id);
-        if (idx === -1) {
-            items.value.push({ ...payload, qty: 1 });
-        } else {
-            items.value[idx].qty += 1;
+        if (idx !== -1) {
+            const next = items.value[idx].qty + qty;
+
+            // optional stock limit
+            if (typeof items.value[idx].stock === 'number') {
+                items.value[idx].qty = Math.min(next, items.value[idx].stock!);
+            } else {
+                items.value[idx].qty = next;
+            }
+
+            persist();
+            return;
         }
+
+        const initialQty = Math.max(1, qty);
+        items.value.push({ ...payload, qty: initialQty });
         persist();
     }
-
 
     function remove(id: string | number) {
         const idx = findIndex(id);
-        if (idx !== -1) items.value.splice(idx, 1);
-        persist();
+        if (idx !== -1) {
+            items.value.splice(idx, 1);
+            persist();
+        }
     }
-
 
     function increase(id: string | number) {
         const idx = findIndex(id);
         if (idx !== -1) {
-            items.value[idx].qty += 1;
+            const item = items.value[idx];
+            const next = item.qty + 1;
+
+            if (typeof item.stock === 'number') {
+                item.qty = Math.min(next, item.stock);
+            } else {
+                item.qty = next;
+            }
+
             persist();
         }
     }
-
 
     function decrease(id: string | number) {
         const idx = findIndex(id);
         if (idx !== -1) {
-            items.value[idx].qty -= 1;
-            if (items.value[idx].qty <= 0) items.value.splice(idx, 1);
+            const item = items.value[idx];
+            item.qty -= 1;
+            if (item.qty <= 0) items.value.splice(idx, 1);
             persist();
         }
     }
 
+    function setQty(id: string | number, qty: number) {
+        const idx = findIndex(id);
+        if (idx === -1) return;
+
+        const safeQty = Math.max(1, Math.floor(qty || 1));
+        const item = items.value[idx];
+
+        if (typeof item.stock === 'number') {
+            item.qty = Math.min(safeQty, item.stock);
+        } else {
+            item.qty = safeQty;
+        }
+
+        persist();
+    }
 
     function clear() {
         items.value = [];
         persist();
     }
 
+    const totalQty = computed(() =>
+        items.value.reduce((sum, item) => sum + item.qty, 0),
+    );
 
-    const totalQty = computed(() => items.value.reduc
+    const totalPrice = computed(() =>
+        items.value.reduce((sum, item) => sum + item.price * item.qty, 0),
+    );
+
+    const isEmpty = computed(() => items.value.length === 0);
+
+    return {
+        items,
+        add,
+        remove,
+        increase,
+        decrease,
+        setQty,
+        clear,
+        totalQty,
+        totalPrice,
+        isEmpty,
+    };
+});

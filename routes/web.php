@@ -35,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function(){
 
     Route::get('/pos', [POSController::class, 'index'])
         ->name('pos.index');
+    Route::post('/pos/checkout', [POSController::class, 'checkout'])
+        ->name('pos.checkout');
 
     Route::get('/invoices', [InvoiceController::class, 'index'])
         ->name('invoices.index');
