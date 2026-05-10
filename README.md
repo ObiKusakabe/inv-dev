@@ -96,7 +96,7 @@ jalankan kode ini di terminal CMD/GitBash
   php artisan key:generate
 ```
 
-- Setup Database
+- Setup Database (opsional "karena sqlite udah cukup buat dummy data sama dalam development, lebih simple gak perlu setup sql laragon")
 
   Buka `.env` dan konfigurasi database:
 ```env
