@@ -123,8 +123,8 @@ DB_PASSWORD=
   Akses aplikasi di: `http://localhost:8000`
 
   **Default Login:**
-  - Email: `admin@nanana.com`
-  - Password: `password`
+  - Email: `admin@1.com`
+  - Password: `123`
 
 
 ## Screenshot
