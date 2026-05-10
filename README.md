@@ -84,6 +84,18 @@ jalankan kode ini di terminal CMD/GitBash
   npm install
 ```
 
+- ENV
+
+```bash
+  cp .env.example .env
+```
+
+- Generate App Key
+
+```bash
+  php artisan key:generate
+```
+
 - Jalankan server
 
 ```bash
