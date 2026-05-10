@@ -8,10 +8,14 @@ class StockMovement extends Model
 {
     protected $fillable = [
         'product_id',
+        'supplier_id',
+        'branch_id',
+        'invoice_id',
         'type',
-        'quantity',
+        'qty',
+        'reason',
         'note',
-        'user_id',
+        'created_by',
     ];
 
     public function product()
@@ -19,8 +23,18 @@ class StockMovement extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function supplier()
+    {
+        return $this->belongsTo(SupplierData::class, 'supplier_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

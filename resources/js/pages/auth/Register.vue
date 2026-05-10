@@ -4,6 +4,7 @@ import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
@@ -56,9 +57,8 @@ import { Form, Head } from '@inertiajs/vue3';
 
                 <div class="grid gap-2">
                     <Label for="password">Masukkan sandi</Label>
-                    <Input
+                    <PasswordInput
                         id="password"
-                        type="password"
                         required
                         :tabindex="3"
                         autocomplete="new-password"
@@ -70,9 +70,8 @@ import { Form, Head } from '@inertiajs/vue3';
 
                 <div class="grid gap-2">
                     <Label for="password_confirmation">Konfirmasi sandi</Label>
-                    <Input
+                    <PasswordInput
                         id="password_confirmation"
-                        type="password"
                         required
                         :tabindex="4"
                         autocomplete="new-password"

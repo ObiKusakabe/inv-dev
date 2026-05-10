@@ -10,6 +10,7 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -47,11 +48,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 >
                     <div class="grid gap-2">
                         <Label for="current_password">Sandi saat ini</Label>
-                        <Input
+                        <PasswordInput
                             id="current_password"
                             name="current_password"
-                            type="password"
-                            class="mt-1 block w-full"
                             autocomplete="current-password"
                             placeholder="Sandi saat ini"
                         />
@@ -60,11 +59,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
                     <div class="grid gap-2">
                         <Label for="password">Sandi baru</Label>
-                        <Input
+                        <PasswordInput
                             id="password"
                             name="password"
-                            type="password"
-                            class="mt-1 block w-full"
                             autocomplete="new-password"
                             placeholder="Sandi baru"
                         />
@@ -75,11 +72,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         <Label for="password_confirmation"
                             >Konfirmasi sandi</Label
                         >
-                        <Input
+                        <PasswordInput
                             id="password_confirmation"
                             name="password_confirmation"
-                            type="password"
-                            class="mt-1 block w-full"
                             autocomplete="new-password"
                             placeholder="Ketik ulang sandi baru"
                         />

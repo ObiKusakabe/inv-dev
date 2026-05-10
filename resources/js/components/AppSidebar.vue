@@ -15,13 +15,14 @@ import { dashboard } from '@/routes';
 import  products  from '@/routes/products';
 import  category  from '@/routes/category';
 import  stockManagement  from '@/routes/stockManagement';
+import  stockHistory  from '@/routes/stockHistory';
 import  pos  from '@/routes/pos';
 import  invoices  from '@/routes/invoices';
 import  supplierData  from '@/routes/supplierData';
 import  summary  from '@/routes/summary';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { ChartPie, Shirt, LayoutList, Layers, BadgeDollarSign, ScrollText, FileBox, NotebookTabs  } from 'lucide-vue-next';
+import Link from '@/components/Link.vue';
+import { ChartPie, Shirt, LayoutList, Layers, BadgeDollarSign, ScrollText, FileBox, NotebookTabs, History  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 // const mainNavItems: NavItem[] = [
@@ -95,6 +96,11 @@ const mainNavGroups: NavGroup[] = [
                 title: 'Manajemen Stok',
                 href: stockManagement.index(),
                 icon: Layers,
+            },
+            {
+                title: 'Riwayat Stok',
+                href: stockHistory.index(),
+                icon: History,
             },
             {
                 title: 'Kategori',

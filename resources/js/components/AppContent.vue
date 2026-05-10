@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SidebarInset } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { computed } from 'vue';
 
 interface Props {
@@ -12,8 +13,10 @@ const className = computed(() => props.class);
 </script>
 
 <template>
-    <SidebarInset v-if="props.variant === 'sidebar'" :class="className">
-        <slot />
+    <SidebarInset v-if="props.variant === 'sidebar'" :class="cn('flex flex-col min-h-screen', className)">
+        <div class="flex-1 flex flex-col">
+            <slot />
+        </div>
     </SidebarInset>
     <main
         v-else

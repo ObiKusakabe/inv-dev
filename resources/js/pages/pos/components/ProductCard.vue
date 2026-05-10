@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cart';
 import type { Product } from '../Index.vue';
+import { computed } from 'vue';
+import { Plus, Minus } from 'lucide-vue-next';
 
 const props = defineProps<{ product: Product }>();
 
 const cart = useCartStore();
+
+const cartItem = computed(() => cart.items.find(i => i.id === props.product.id));
+const qty = computed(() => cartItem.value?.qty ?? 0);
+const inCart = computed(() => qty.value > 0);
 
 function formatIDR(v: number) {
     return new Intl.NumberFormat('id-ID').format(v);
@@ -22,42 +27,88 @@ function add() {
         stock: props.product.stock,
     });
 }
+
+function remove(e: Event) {
+    e.stopPropagation();
+    cart.remove(props.product.id);
+}
 </script>
 
 <template>
     <div
-        class="rounded-lg border bg-white p-3 shadow-sm"
-        :class="(product.stock ?? 1) <= 0 ? 'opacity-60' : ''"
+        class="group rounded-lg border bg-background shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all relative"
+        :class="(product.stock ?? 1) <= 0 ? 'opacity-60 cursor-not-allowed' : ''"
+        @click="add"
     >
-        <div class="mb-2 flex items-start justify-between gap-2">
-            <h3 class="line-clamp-2 text-sm font-semibold">{{ product.name }}</h3>
+        <!-- Product Image -->
+        <div class="aspect-square bg-background relative overflow-hidden">
+            <img
+                v-if="product.image"
+                :src="product.image"
+                :alt="product.name"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            />
+            <div v-else class="h-full w-full flex items-center justify-center text-muted-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
 
+            <!-- Add Icon (green +) when NOT in cart -->
+            <button
+                v-if="!inCart && (product.stock ?? 0) > 0"
+                class="absolute top-2 right-2 h-7 w-7 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors shadow-sm"
+                @click.stop="add"
+            >
+                <Plus class="h-4 w-4" />
+            </button>
+
+            <!-- Remove Icon (red -) when IN cart -->
+            <button
+                v-if="inCart"
+                class="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                @click.stop="remove"
+            >
+                <Minus class="h-4 w-4" />
+            </button>
+
+            <!-- Out of stock badge -->
             <span
                 v-if="(product.stock ?? 0) <= 0"
-                class="rounded-full bg-gray-200 px-2 py-1 text-xs text-gray-700"
+                class="absolute top-2 right-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white font-medium"
             >
                 Habis
             </span>
+
+            <!-- Qty badge when in cart -->
             <span
-                v-else
-                class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700"
+                v-if="inCart"
+                class="absolute bottom-2 right-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground font-medium"
             >
-                Stock: {{ product.stock }}
+                {{ qty }}x
             </span>
         </div>
 
-        <p class="text-sm font-bold text-indigo-600">Rp {{ formatIDR(product.price) }}</p>
-        <p v-if="product.description" class="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {{ product.description }}
-        </p>
-
-        <Button
-            class="mt-3 h-8 w-full"
-            size="sm"
-            :disabled="(product.stock ?? 1) <= 0"
-            @click="add"
-        >
-            + Tambah
-        </Button>
+        <!-- Product Info -->
+        <div class="p-3">
+            <!-- Category -->
+            <p v-if="product.category" class="text-xs text-muted-foreground">
+                {{ product.category }}
+            </p>
+            <h3 class="line-clamp-2 text-sm font-semibold">{{ product.name }}</h3>
+            
+            <!-- Separator -->
+            <div class="my-2 border-t border-dashed border-border"></div>
+            
+            <!-- Stock & Price Row -->
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-rose-500 font-medium">
+                    {{ product.stock ?? 0 }} Pcs
+                </span>
+                <span class="text-sm font-bold text-primary">
+                    Rp {{ formatIDR(product.price) }}
+                </span>
+            </div>
+        </div>
     </div>
 </template>

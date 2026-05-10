@@ -1,401 +1,244 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import invoices from '@/routes/invoices';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue'
+import invoices from '@/routes/invoices'
+import { type BreadcrumbItem } from '@/types'
+import { Head, router } from '@inertiajs/vue3'
+import { computed, ref, h, watch } from 'vue'
+import { cn } from '@/lib/utils'
+import type { DateRange } from 'reka-ui'
+import type { DateValue } from '@internationalized/date'
+import { DateFormatter, parseDate, getLocalTimeZone } from '@internationalized/date'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
+import type { ColumnDef } from '@tanstack/vue-table'
+import DataTable from '@/components/ui/data-table/DataTable.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { RangeCalendar } from '@/components/ui/range-calendar'
+import { FileText, Eye, CalendarIcon } from 'lucide-vue-next'
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Transaksi & Tagihan',
-        href: invoices.index().url,
-    },
-];
-//
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { valueUpdater } from '@/lib/utils';
-import type {
-    ColumnDef,
-    ColumnFiltersState,
-    ExpandedState,
-    SortingState,
-    VisibilityState,
-} from '@tanstack/vue-table';
-import {
-    FlexRender,
-    getCoreRowModel,
-    getExpandedRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useVueTable,
-} from '@tanstack/vue-table';
-import { createReusableTemplate } from '@vueuse/core';
-import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-vue-next';
-import { h, ref } from 'vue';
-export interface Payment {
-    id: string;
-    kodeInvoice: string;
-    status: 'lunas' | 'belum lunas';
-    tglDibuat: string;  
+type Branch = { id: number; name: string }
+type Customer = { id: number; name: string }
+type Product = { id: number; name: string }
+type InvoiceItem = { id: number; product: Product; qty: number; price: number; subtotal: number }
+type Invoice = {
+  id: number
+  invoice_number: string
+  invoice_date: string
+  branch: Branch
+  customer: Customer | null
+  items: InvoiceItem[]
+  subtotal: number
+  discount: number
+  tax: number
+  total: number
+  status: 'PAID' | 'UNPAID' | 'CANCELLED'
+  payment_method: string
 }
-const data: Payment[] = [
-    {
-        id: 'm5gr84i9',
-        kodeInvoice: 'CBG1  -010126-0001',
-        status: 'lunas',
-        tglDibuat: '7 Januari 2006',
-    },
-    {
-        id: '3u1reuv4',
-        kodeInvoice: 'CBG2-020226-0001',
-        status: 'lunas',
-        tglDibuat: '10 Januari 2006',
-    },
-    {
-        id: 'derv1ws0',
-        kodeInvoice: 'CBG1-010126-0002',
-        status: 'belum lunas',
-        tglDibuat: '12 Januari 2006',
-    },
-    {
-        id: '5kma53ae',
-        kodeInvoice: 'CBG2-010126-0001',
-        status: 'lunas',
-        tglDibuat: '9 Januari 2006',
-    },
-    {
-        id: 'bhqecj4p',
-        kodeInvoice: 'CBG2-010126-0002',
-        status: 'belum lunas',
-        tglDibuat: '5 Januari 2006',
-    },
-];
-const [] = createReusableTemplate<{
-    payment: {
-        id: string;
-    };
-    onExpand: () => void;
-}>();
-const columns: ColumnDef<Payment>[] = [
-    {
-        id: 'select',
-        header: ({ table }) =>
-            h(Checkbox, {
-                modelValue:
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate'),
-                'onUpdate:modelValue': (value) =>
-                    table.toggleAllPageRowsSelected(!!value),
-                ariaLabel: 'Select all',
-            }),
-        cell: ({ row }) =>
-            h(Checkbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value) => row.toggleSelected(!!value),
-                ariaLabel: 'Select row',
-            }),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
-        accessorKey: 'kodeInvoice',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Kode Invoice', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('kodeInvoice')),
-    },
-    {
-        accessorKey: 'tglDibuat',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Tanggal Dibuat', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('tglDibuat')),
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Status', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) => {
-            const status = row.getValue('status') as string;
 
-            return h(
-                Badge,
-                {
-                    variant: status === 'lunas' ? 'success' : 'destructive',
-                    class:
-                        status === 'lunas'
-                            ? 'bg-green-500 text-white'
-                            : '',
-                },
-                () => (status === 'lunas' ? 'lunas' : 'belum lunas'),
-            );
-        },
+const props = defineProps<{
+  invoices: Invoice[]
+  branches: Branch[]
+  filters: { branch_id?: string; date_from?: string; date_to?: string; status?: string; search?: string }
+}>()
 
-    },
-    {
-        id: 'actions',
-        enableHiding: false,
-        cell: ({ row }) => {
-            return h(
-                'div',
-                { class: 'flex gap-2 justify-end' },
-                [
-                    h(
-                        Button,
-                        {
-                            variant: 'outline',
-                            size: 'icon',
-                            onClick: () => editCategory(row.original.id),
-                        },
-                        () => h(Pencil, { class: 'h-4 w-4' }),
-                    ),
-                    h(
-                        Button,
-                        {
-                            variant: 'destructive',
-                            size: 'icon',
-                            onClick: () => deleteCategory(row.original.id),
-                        },
-                        () => h(Trash2, { class: 'h-4 w-4' }),
-                    ),
-                ],
-            );
-        },
-    },
-];
-const sorting = ref<SortingState>([]);
-const columnFilters = ref<ColumnFiltersState>([]);
-const columnVisibility = ref<VisibilityState>({});
-const rowSelection = ref({});
-const expanded = ref<ExpandedState>({});
-const table = useVueTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    onSortingChange: (updaterOrValue) => valueUpdater(updaterOrValue, sorting),
-    onColumnFiltersChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnFilters),
-    onColumnVisibilityChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnVisibility),
-    onRowSelectionChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, rowSelection),
-    onExpandedChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, expanded),
-    state: {
-        get sorting() {
-            return sorting.value;
-        },
-        get columnFilters() {
-            return columnFilters.value;
-        },
-        get columnVisibility() {
-            return columnVisibility.value;
-        },
-        get rowSelection() {
-            return rowSelection.value;
-        },
-        get expanded() {
-            return expanded.value;
-        },
-    },
-});
-// function copy(id: string) {
-//     navigator.clipboard.writeText(id);
-// }
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Transaksi', href: invoices.index().url }]
+
+const formatDate = (date: string) => format(new Date(date), 'dd MMM yyyy HH:mm', { locale: id })
+
+const formatRupiah = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount)
+
+const getStatusBadge = (status: string) => {
+  const statusUpper = status.toUpperCase();
+  const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class: string; label: string }> = {
+    PAID: { variant: 'default', class: 'bg-emerald-500 hover:bg-emerald-600 text-white', label: 'Lunas' },
+    UNPAID: { variant: 'secondary', class: '', label: 'Belum Lunas' },
+    CANCELLED: { variant: 'destructive', class: '', label: 'Dibatalkan' }
+  };
+  const config = variants[statusUpper] || { variant: 'outline', class: '', label: status };
+  return h(Badge, { variant: config.variant, class: config.class }, () => config.label);
+}
+
+const columns: ColumnDef<Invoice>[] = [
+  { accessorKey: 'invoice_number', header: 'No. Invoice', cell: ({ row }) => h('span', { class: 'font-mono font-medium' }, row.original.invoice_number) },
+  { accessorKey: 'invoice_date', header: 'Tanggal', cell: ({ row }) => h('span', {}, formatDate(row.original.invoice_date)) },
+  { accessorKey: 'branch', header: 'Cabang', cell: ({ row }) => h('span', {}, row.original.branch?.name ?? '-') },
+  { accessorKey: 'customer', header: 'Pelanggan', cell: ({ row }) => h('span', {}, row.original.customer?.name ?? 'Umum') },
+  { accessorKey: 'total', header: 'Total', cell: ({ row }) => h('span', { class: 'font-medium' }, formatRupiah(row.original.total)) },
+  { accessorKey: 'status', header: 'Status', cell: ({ row }) => getStatusBadge(row.original.status) },
+  { id: 'actions', header: 'Aksi', cell: ({ row }) => h('a', { href: invoices.show(row.original.id).url, class: 'inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0' }, h(Eye, { class: 'h-4 w-4' })) }
+]
+
+const branchId = ref(props.filters.branch_id || 'all')
+const dateFrom = ref(props.filters.date_from ?? '')
+const dateTo = ref(props.filters.date_to ?? '')
+const status = ref(props.filters.status || 'all')
+const search = ref(props.filters.search ?? '')
+
+// Date picker popover state
+const dateRangeOpen = ref(false)
+
+// Date formatter
+const df = new DateFormatter('id-ID', { dateStyle: 'medium' })
+
+// Range calendar state
+const dateRange = ref<DateRange>({
+  start: dateFrom.value ? parseDate(dateFrom.value) : undefined,
+  end: dateTo.value ? parseDate(dateTo.value) : undefined,
+})
+
+// Watch dateRange changes and update refs
+watch(dateRange, (newRange) => {
+  if (newRange?.start) {
+    dateFrom.value = newRange.start.toString()
+  } else {
+    dateFrom.value = ''
+  }
+  if (newRange?.end) {
+    dateTo.value = newRange.end.toString()
+  } else {
+    dateTo.value = ''
+  }
+}, { deep: true })
+
+// Format date range for display
+const dateRangeDisplay = computed(() => {
+  if (dateRange.value?.start && dateRange.value?.end) {
+    const start = df.format(dateRange.value.start.toDate(getLocalTimeZone()))
+    const end = df.format(dateRange.value.end.toDate(getLocalTimeZone()))
+    return `${start} - ${end}`
+  }
+  if (dateRange.value?.start) {
+    return df.format(dateRange.value.start.toDate(getLocalTimeZone()))
+  }
+  return 'Pilih rentang'
+})
+
+const applyFilters = () => {
+  router.get(invoices.index().url, {
+    branch_id: branchId.value === 'all' ? undefined : branchId.value,
+    date_from: dateFrom.value || undefined,
+    date_to: dateTo.value || undefined,
+    status: status.value === 'all' ? undefined : status.value,
+    search: search.value || undefined,
+  }, { preserveState: true, preserveScroll: true })
+}
+
+const resetFilters = () => {
+  branchId.value = 'all'
+  dateFrom.value = ''
+  dateTo.value = ''
+  dateRange.value = { start: undefined, end: undefined }
+  status.value = 'all'
+  search.value = ''
+  applyFilters()
+}
+
+const totalRevenue = computed(() => props.invoices.filter(i => i.status === 'PAID').reduce((sum, i) => sum + i.total, 0))
+const totalTransactions = computed(() => props.invoices.length)
 </script>
 
 <template>
-    <Head title="Invoice" />
-
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
-            <div class="w-full">
-                <div class="flex items-center py-4">
-                    <Input
-                        class="max-w-sm"
-                        placeholder="Cari kode invoice..."
-                        :model-value="
-                            table.getColumn('kodeInvoice')?.getFilterValue() as string
-                        "
-                        @update:model-value="
-                            table.getColumn('kodeInvoice')?.setFilterValue($event)
-                        "
-                    />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="ml-auto">
-                                Kolom <ChevronDown class="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuCheckboxItem
-                                v-for="column in table
-                                    .getAllColumns()
-                                    .filter((column) => column.getCanHide())"
-                                :key="column.id"
-                                class="capitalize"
-                                :model-value="column.getIsVisible()"
-                                @update:model-value="
-                                    (value) => {
-                                        column.toggleVisibility(!!value);
-                                    }
-                                "
-                            >
-                                {{ column.id }}
-                            </DropdownMenuCheckboxItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <div class="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow
-                                v-for="headerGroup in table.getHeaderGroups()"
-                                :key="headerGroup.id"
-                            >
-                                <TableHead
-                                    v-for="header in headerGroup.headers"
-                                    :key="header.id"
-                                >
-                                    <FlexRender
-                                        v-if="!header.isPlaceholder"
-                                        :render="header.column.columnDef.header"
-                                        :props="header.getContext()"
-                                    />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <template v-if="table.getRowModel().rows?.length">
-                                <template
-                                    v-for="row in table.getRowModel().rows"
-                                    :key="row.id"
-                                >
-                                    <TableRow
-                                        :data-state="
-                                            row.getIsSelected() && 'selected'
-                                        "
-                                    >
-                                        <TableCell
-                                            v-for="cell in row.getVisibleCells()"
-                                            :key="cell.id"
-                                        >
-                                            <FlexRender
-                                                :render="
-                                                    cell.column.columnDef.cell
-                                                "
-                                                :props="cell.getContext()"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="row.getIsExpanded()">
-                                        <TableCell
-                                            :colspan="row.getAllCells().length"
-                                        >
-                                            {{ JSON.stringify(row.original) }}
-                                        </TableCell>
-                                    </TableRow>
-                                </template>
-                                <TableRow>
-                                    <TableCell
-                                        :colspan="columns.length"
-                                        class="text-center py-1 bg-muted/30"
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            class="gap-2"
-                                            @click="createCategory()"
-                                        >
-                                            + Tambah Kategori
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </template>
-                            <TableRow v-else>
-                                <TableCell
-                                    :colspan="columns.length"
-                                    class="h-24 text-center"
-                                >
-                                    Pencarian tidak ditemukan. :(
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-                <div class="flex items-center justify-end space-x-2 py-4">
-                    <div class="flex-1 text-sm text-muted-foreground">
-                        {{ table.getFilteredSelectedRowModel().rows.length }} dari
-                        {{ table.getFilteredRowModel().rows.length }} baris
-                        terpilih.
-                    </div>
-                    <div class="space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanPreviousPage()"
-                            @click="table.previousPage()"
-                        >
-                            Sebelumnya
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanNextPage()"
-                            @click="table.nextPage()"
-                        >
-                            Selanjutnya
-                        </Button>
-                    </div>
-                </div>
-            </div>
+  <Head title="Transaksi" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="flex flex-col gap-6 p-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold">Daftar Transaksi</h2>
+          <p class="text-sm text-muted-foreground">Riwayat transaksi & invoice penjualan.</p>
         </div>
-    </AppLayout>
+        <Button variant="outline" @click="window.print()">
+          <FileText class="mr-2 h-4 w-4" /> Export
+        </Button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="rounded-xl border p-4">
+          <div class="text-sm text-muted-foreground">Total Transaksi</div>
+          <div class="text-2xl font-bold">{{ totalTransactions }}</div>
+        </div>
+        <div class="rounded-xl border p-4">
+          <div class="text-sm text-muted-foreground">Total Pendapatan</div>
+          <div class="text-2xl font-bold text-green-600">{{ formatRupiah(totalRevenue) }}</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="w-48">
+          <label class="text-xs text-muted-foreground mb-1 block">Cabang</label>
+          <Select v-model="branchId" @update:model-value="applyFilters">
+            <SelectTrigger><SelectValue placeholder="Semua Cabang" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Cabang</SelectItem>
+              <SelectItem v-for="b in branches" :key="b.id" :value="String(b.id)">{{ b.name }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="w-[200px]">
+          <label class="text-xs text-muted-foreground mb-1 block">Rentang Tanggal</label>
+          <Popover v-model:open="dateRangeOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" :class="cn('w-full justify-start text-left font-normal h-9', !dateRange?.start && 'text-muted-foreground')">
+                <CalendarIcon class="mr-2 h-4 w-4" />
+                {{ dateRangeDisplay }}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto p-0 z-[100]" side="bottom" align="center" :side-offset="8" :hide-when-detached="true">
+              <div class="p-3 pb-0">
+                <RangeCalendar
+                  v-model="dateRange"
+                  :number-of-months="2"
+                  initial-focus
+                />
+              </div>
+              <div class="flex items-center justify-between p-3 border-t mt-3">
+                <span class="text-sm text-muted-foreground">
+                  {{ dateRange?.start ? df.format(dateRange.start.toDate(getLocalTimeZone())) : '-' }} - {{ dateRange?.end ? df.format(dateRange.end.toDate(getLocalTimeZone())) : '-' }}
+                </span>
+                <div class="flex gap-2">
+                  <Button variant="ghost" size="sm" @click="dateRangeOpen = false">
+                    Batal
+                  </Button>
+                  <Button size="sm" @click="() => { dateRangeOpen = false; applyFilters(); }" :disabled="!dateRange?.start || !dateRange?.end">
+                    Pilih
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div class="w-40">
+          <label class="text-xs text-muted-foreground mb-1 block">Status</label>
+          <Select v-model="status" @update:model-value="applyFilters">
+            <SelectTrigger><SelectValue placeholder="Semua Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="PAID">Lunas</SelectItem>
+              <SelectItem value="UNPAID">Belum Lunas</SelectItem>
+              <SelectItem value="CANCELLED">Batal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <label class="text-xs text-muted-foreground mb-1 block">Cari No. Invoice</label>
+          <Input v-model="search" placeholder="INV-..." @keyup.enter="applyFilters" />
+        </div>
+        <Button variant="outline" @click="resetFilters">Reset</Button>
+      </div>
+
+      <!-- Table -->
+      <DataTable :columns="columns" :data="props.invoices" search-key="invoice_number" search-placeholder="Cari invoice..." />
+    </div>
+  </AppLayout>
 </template>

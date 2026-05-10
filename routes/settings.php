@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\DevToolsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -25,4 +26,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // Dev Tools - Data Management (Development Only)
+    Route::delete('settings/dev-tools/my-data', [DevToolsController::class, 'deleteMyData'])
+        ->name('dev-tools.delete-my-data');
+    Route::delete('settings/dev-tools/all-data', [DevToolsController::class, 'deleteAllData'])
+        ->name('dev-tools.delete-all-data');
 });

@@ -7,8 +7,9 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
+import { index as branchesIndex } from '@/routes/branches';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import Link from '@/components/Link.vue';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -27,16 +28,20 @@ const sidebarNavItems: NavItem[] = [
         title: 'Tampilan',
         href: editAppearance(),
     },
+    {
+        title: 'Cabang',
+        href: branchesIndex(),
+    },
 ];
 
 const currentPath = typeof window !== undefined ? window.location.pathname : '';
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div class="px-4 py-6 flex-1">
         <Heading
             title="Pengaturan"
-            description="Kelola profil dan pengaturan akun Anda"
+            description="Kelola profil, akun, dan pengaturan aplikasi Anda"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
@@ -52,7 +57,7 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         ]"
                         as-child
                     >
-                        <Link :href="item.href" prefetch>
+                        <Link :href="item.href">
                             <component :is="item.icon" class="h-4 w-4" />
                             {{ item.title }}
                         </Link>

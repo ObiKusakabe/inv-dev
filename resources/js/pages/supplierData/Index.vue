@@ -1,403 +1,331 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import supplierData from '@/routes/supplierData';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue'
+import supplierData from '@/routes/supplierData'
+import { type BreadcrumbItem } from '@/types'
+import { Head, router, useForm } from '@inertiajs/vue3'
+import { ref, h } from 'vue'
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Data Supplier',
-        href: supplierData.index().url,
-    },
-];
-//
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'vue-sonner'
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+
+import type { ColumnDef } from '@tanstack/vue-table'
+import DataTable from '@/components/ui/data-table/DataTable.vue'
+
+import { Checkbox } from '@/components/ui/checkbox'
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-// import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { valueUpdater } from '@/lib/utils';
-import type {
-    ColumnDef,
-    ColumnFiltersState,
-    ExpandedState,
-    SortingState,
-    VisibilityState,
-} from '@tanstack/vue-table';
-import {
-    FlexRender,
-    getCoreRowModel,
-    getExpandedRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useVueTable,
-} from '@tanstack/vue-table';
-import { createReusableTemplate } from '@vueuse/core';
-import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-vue-next';
-import { h, ref } from 'vue';
-export interface Payment {
-    id: string;
-    cabang: string;
-    pakaian: string;
-    tglUpdate: string;
-    stok: number;
+} from '@/components/ui/dropdown-menu'
+
+type SupplierRow = {
+    id: number
+    name: string
+    contact: string | null
+    note: string | null
+    created_at: string
 }
-const data: Payment[] = [
-    {
-        id: 'm5gr84i9',
-        cabang: 'Nanana 1',
-        pakaian: 'one set vest linen',
-        tglUpdate: '7 Januari 2006',
-        stok: 2,
-    },
-    {
-        id: '3u1reuv4',
-        cabang: 'Nanana 2',
-        pakaian: 'midi bhn twill+vest linen',
-        tglUpdate: '10 Januari 2006',
-        stok: 1,
-    },
-    {
-        id: 'derv1ws0',
-        cabang: 'Nanana 2',
-        pakaian: 'one set vest kulot jeans',
-        tglUpdate: '12 Januari 2006',
-        stok: 4,
-    },
-    {
-        id: '5kma53ae',
-        cabang: 'Nanana 1',
-        pakaian: 'one set kemeja+vest kemeja',
-        tglUpdate: '9 Januari 2006',
-        stok: 2,
-    },
-    {
-        id: 'bhqecj4p',
-        cabang: 'Nanana 2',
-        pakaian: 'kemeja bahan linen',
-        tglUpdate: '5 Januari 2006',
-        stok: 9,
-    },
-];
-const [] = createReusableTemplate<{
-    payment: {
-        id: string;
-    };
-    onExpand: () => void;
-}>();
-const columns: ColumnDef<Payment>[] = [
+
+const columns: ColumnDef<SupplierRow>[] = [
     {
         id: 'select',
         header: ({ table }) =>
             h(Checkbox, {
-                modelValue:
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate'),
-                'onUpdate:modelValue': (value) =>
-                    table.toggleAllPageRowsSelected(!!value),
+                checked: table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
+                'onUpdate:checked': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
                 ariaLabel: 'Select all',
             }),
         cell: ({ row }) =>
             h(Checkbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value) => row.toggleSelected(!!value),
+                checked: row.getIsSelected(),
+                'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
                 ariaLabel: 'Select row',
             }),
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: 'cabang',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Cabang', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('cabang')),
+        accessorKey: 'name',
+        id: 'name',
+        header: () => 'Nama',
+        cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
     },
     {
-        accessorKey: 'pakaian',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Pakaian', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('pakaian')),
+        accessorKey: 'contact',
+        id: 'contact',
+        header: () => 'Kontak',
+        cell: ({ row }) => h('div', {}, (row.getValue('contact') as string) ?? '-'),
     },
     {
-        accessorKey: 'tglUpdate',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Tanggal Update', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
+        accessorKey: 'note',
+        id: 'note',
+        header: () => 'Catatan',
         cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('tglUpdate')),
-    },
-    {
-        accessorKey: 'stok',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Stok', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('stok')),
+            h('div', { class: 'max-w-[420px] truncate' }, (row.getValue('note') as string) ?? '-'),
     },
     {
         id: 'actions',
-        enableHiding: false,
-        cell: ({ row }) => {
-            return h(
-                'div',
-                { class: 'flex gap-2 justify-end' },
-                [
-                    h(
-                        Button,
-                        {
-                            variant: 'outline',
-                            size: 'icon',
-                            onClick: () => editCategory(row.original.id),
-                        },
-                        () => h(Pencil, { class: 'h-4 w-4' }),
-                    ),
-                    h(
-                        Button,
-                        {
-                            variant: 'destructive',
-                            size: 'icon',
-                            onClick: () => deleteCategory(row.original.id),
-                        },
-                        () => h(Trash2, { class: 'h-4 w-4' }),
-                    ),
-                ],
-            );
-        },
+        header: () => h('div', { class: 'text-right' }, 'Aksi'),
+        cell: ({ row }) =>
+            h('div', { class: 'flex justify-end' }, [
+                h(
+                    DropdownMenu,
+                    {},
+                    {
+                        default: () => [
+                            h(
+                                DropdownMenuTrigger,
+                                { asChild: true },
+                                {
+                                    default: () => h(Button, { variant: 'outline', size: 'sm' }, () => 'Menu'),
+                                }
+                            ),
+                            h(
+                                DropdownMenuContent,
+                                { align: 'end' },
+                                {
+                                    default: () => [
+                                        h(DropdownMenuItem, { onClick: () => startEdit(row.original) }, () => 'Edit'),
+                                        h(DropdownMenuItem, { onClick: () => openDeleteDialog(row.original), class: 'text-red-600' }, () => 'Hapus'),
+                                    ],
+                                }
+                            ),
+                        ],
+                    }
+                ),
+            ]),
+        enableSorting: false,
     },
-];
-const sorting = ref<SortingState>([]);
-const columnFilters = ref<ColumnFiltersState>([]);
-const columnVisibility = ref<VisibilityState>({});
-const rowSelection = ref({});
-const expanded = ref<ExpandedState>({});
-const table = useVueTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    onSortingChange: (updaterOrValue) => valueUpdater(updaterOrValue, sorting),
-    onColumnFiltersChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnFilters),
-    onColumnVisibilityChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnVisibility),
-    onRowSelectionChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, rowSelection),
-    onExpandedChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, expanded),
-    state: {
-        get sorting() {
-            return sorting.value;
-        },
-        get columnFilters() {
-            return columnFilters.value;
-        },
-        get columnVisibility() {
-            return columnVisibility.value;
-        },
-        get rowSelection() {
-            return rowSelection.value;
-        },
-        get expanded() {
-            return expanded.value;
-        },
-    },
-});
-// function copy(id: string) {
-//     navigator.clipboard.writeText(id);
-// }
+]
 
-function editCategory(id: string) {
-    console.log('Edit', id);
+const props = defineProps<{
+    suppliers: SupplierRow[]
+}>()
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Supplier', href: supplierData.index().url },
+]
+
+const mode = ref<'create' | 'edit'>('create')
+const editingId = ref<number | null>(null)
+const isDialogOpen = ref(false)
+
+const form = useForm<{
+    name: string
+    contact: string
+    note: string
+}>({
+    name: '',
+    contact: '',
+    note: '',
+})
+
+function resetForm() {
+    form.reset()
+    form.clearErrors()
+    mode.value = 'create'
+    editingId.value = null
+    isDialogOpen.value = false
 }
 
-function deleteCategory(id: string) {
-    console.log('Delete', id);
+function openCreateDialog() {
+    resetForm()
+    isDialogOpen.value = true
+}
+
+function startEdit(row: SupplierRow) {
+    mode.value = 'edit'
+    editingId.value = row.id
+    form.name = row.name
+    form.contact = row.contact ?? ''
+    form.note = row.note ?? ''
+    form.clearErrors()
+    isDialogOpen.value = true
+}
+
+function submit() {
+    if (mode.value === 'create') {
+        const toastId = toast.loading('Menambah data supplier...')
+        form.post(supplierData.store().url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.dismiss(toastId)
+                setTimeout(() => toast.success('Data supplier berhasil ditambah'), 100)
+                resetForm()
+                isDialogOpen.value = false
+            },
+            onError: (errors) => {
+                toast.dismiss(toastId)
+                const msg = typeof errors === 'object' ? Object.values(errors).flat().join(', ') : 'Terjadi kesalahan'
+                setTimeout(() => toast.error('Gagal menambah data', { description: msg }), 100)
+            }
+        })
+        return
+    }
+
+    if (!editingId.value) return
+    const toastId = toast.loading('Memperbarui data supplier...')
+    form.put(supplierData.update(editingId.value).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.dismiss(toastId)
+            setTimeout(() => toast.success('Data supplier berhasil diperbarui'), 100)
+            resetForm()
+            isDialogOpen.value = false
+        },
+        onError: (errors) => {
+            toast.dismiss(toastId)
+            const msg = typeof errors === 'object' ? Object.values(errors).flat().join(', ') : 'Terjadi kesalahan'
+            setTimeout(() => toast.error('Gagal memperbarui data', { description: msg }), 100)
+        }
+    })
+}
+
+// Alert Dialog state for delete confirmation
+const supplierToDelete = ref<SupplierRow | null>(null)
+const isDeleteDialogOpen = ref(false)
+
+function openDeleteDialog(row: SupplierRow) {
+    supplierToDelete.value = row
+    isDeleteDialogOpen.value = true
+}
+
+function confirmDelete() {
+    if (!supplierToDelete.value) return
+    
+    const toastId = toast.loading('Menghapus data supplier...')
+    
+    router.delete(supplierData.destroy(supplierToDelete.value.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.dismiss(toastId)
+            setTimeout(() => {
+                toast.success('Data supplier berhasil dihapus')
+            }, 100)
+            supplierToDelete.value = null
+            isDeleteDialogOpen.value = false
+        },
+        onError: (errors) => {
+            toast.dismiss(toastId)
+            const errorMessage = typeof errors === 'object' ? Object.values(errors).flat().join(', ') : 'Terjadi kesalahan'
+            setTimeout(() => {
+                toast.error('Gagal menghapus data supplier', { description: errorMessage })
+            }, 100)
+        }
+    })
 }
 </script>
 
 <template>
+
     <Head title="Supplier" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
-            <div class="w-full">
-                <div class="flex items-center py-4">
-                    <Input
-                        class="max-w-sm"
-                        placeholder="Cari Pakaian..."
-                        :model-value="
-                            table.getColumn('pakaian')?.getFilterValue() as string
-                        "
-                        @update:model-value="
-                            table.getColumn('pakaian')?.setFilterValue($event)
-                        "
-                    />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="ml-auto">
-                                Kolom <ChevronDown class="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuCheckboxItem
-                                v-for="column in table
-                                    .getAllColumns()
-                                    .filter((column) => column.getCanHide())"
-                                :key="column.id"
-                                class="capitalize"
-                                :model-value="column.getIsVisible()"
-                                @update:model-value="
-                                    (value) => {
-                                        column.toggleVisibility(!!value);
-                                    }
-                                "
-                            >
-                                {{ column.id }}
-                            </DropdownMenuCheckboxItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+        <div class="flex flex-col gap-6 p-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold">Supplier</h2>
+                    <p class="text-sm text-muted-foreground">
+                        Simpan data supplier untuk stok & pembelian.
+                    </p>
                 </div>
-                <div class="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow
-                                v-for="headerGroup in table.getHeaderGroups()"
-                                :key="headerGroup.id"
-                            >
-                                <TableHead
-                                    v-for="header in headerGroup.headers"
-                                    :key="header.id"
-                                >
-                                    <FlexRender
-                                        v-if="!header.isPlaceholder"
-                                        :render="header.column.columnDef.header"
-                                        :props="header.getContext()"
-                                    />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <template v-if="table.getRowModel().rows?.length">
-                                <template
-                                    v-for="row in table.getRowModel().rows"
-                                    :key="row.id"
-                                >
-                                    <TableRow
-                                        :data-state="
-                                            row.getIsSelected() && 'selected'
-                                        "
-                                    >
-                                        <TableCell
-                                            v-for="cell in row.getVisibleCells()"
-                                            :key="cell.id"
-                                        >
-                                            <FlexRender
-                                                :render="
-                                                    cell.column.columnDef.cell
-                                                "
-                                                :props="cell.getContext()"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="row.getIsExpanded()">
-                                        <TableCell
-                                            :colspan="row.getAllCells().length"
-                                        >
-                                            {{ JSON.stringify(row.original) }}
-                                        </TableCell>
-                                    </TableRow>
-                                </template>
-                            </template>
-                            <TableRow v-else>
-                                <TableCell
-                                    :colspan="columns.length"
-                                    class="h-24 text-center"
-                                >
-                                    Pencarian tidak ditemukan. :(
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-                <div class="flex items-center justify-end space-x-2 py-4">
-                    <div class="flex-1 text-sm text-muted-foreground">
-                        {{ table.getFilteredSelectedRowModel().rows.length }} dari
-                        {{ table.getFilteredRowModel().rows.length }} baris
-                        terpilih.
-                    </div>
-                    <div class="space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanPreviousPage()"
-                            @click="table.previousPage()"
-                        >
-                            Sebelumnya
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanNextPage()"
-                            @click="table.nextPage()"
-                        >
-                            Selanjutnya
-                        </Button>
-                    </div>
-                </div>
+                <Button @click="openCreateDialog">+ Tambah Supplier</Button>
             </div>
-        </div>
+
+            <!-- Table -->
+            <DataTable :columns="columns" :data="props.suppliers" search-key="name"
+                search-placeholder="Cari supplier..." />
+
+                <!-- Create/Edit Dialog -->
+                <Dialog v-model:open="isDialogOpen">
+                    <DialogContent class="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>{{ mode === 'create' ? 'Tambah Supplier' : 'Edit Supplier' }}</DialogTitle>
+                            <DialogDescription>
+                                Simpan data supplier untuk stok & pembelian.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div class="py-4 space-y-4">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm font-medium">Nama</label>
+                                <Input v-model="form.name" placeholder="Misal: PT Sumber Fashion" />
+                                <div v-if="form.errors.name" class="text-sm text-red-600">
+                                    {{ form.errors.name }}
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm font-medium">Kontak (opsional)</label>
+                                <Input v-model="form.contact" placeholder="WA / Email / Nama PIC" />
+                                <div v-if="form.errors.contact" class="text-sm text-red-600">
+                                    {{ form.errors.contact }}
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm font-medium">Catatan (opsional)</label>
+                                <Textarea v-model="form.note" placeholder="Alamat, rekening, terms, dll…" />
+                                <div v-if="form.errors.note" class="text-sm text-red-600">
+                                    {{ form.errors.note }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <DialogFooter class="flex flex-row gap-2 justify-end">
+                            <Button variant="outline" @click="isDialogOpen = false">Batal</Button>
+                            <Button :disabled="form.processing" @click="submit">
+                                {{ form.processing ? 'Menyimpan…' : 'Simpan' }}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <!-- Delete Confirmation Alert Dialog -->
+                <AlertDialog v-model:open="isDeleteDialogOpen">
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Hapus Supplier?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Apakah Anda yakin ingin menghapus supplier "{{ supplierToDelete?.name }}"?
+                                <br />Semua produk yang terhubung ke supplier ini akan kehilangan data supplier.
+                                Tindakan ini tidak dapat dibatalkan.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel @click="supplierToDelete = null">Batal</AlertDialogCancel>
+                            <AlertDialogAction 
+                                @click="confirmDelete" 
+                                class="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                                Hapus
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
     </AppLayout>
 </template>

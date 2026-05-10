@@ -8,11 +8,16 @@ class Invoice extends Model
 {
     protected $fillable = [
         'invoice_number',
+        'invoice_date',
         'branch_id',
         'customer_id',
         'user_id',
-        'status',
+        'subtotal',
+        'tax',
+        'discount_amount',
         'total',
+        'status',
+        'payment_method',
     ];
 
     public function items()

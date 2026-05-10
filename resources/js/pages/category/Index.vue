@@ -1,419 +1,331 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import category from '@/routes/category';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue'
+import category from '@/routes/category'
+import { type BreadcrumbItem } from '@/types'
+import { Head, router, useForm } from '@inertiajs/vue3'
+import { computed, ref, h, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import { cn } from '@/lib/utils'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Check, ChevronsUpDown } from 'lucide-vue-next'
+import type { ColumnDef } from '@tanstack/vue-table'
+import DataTable from '@/components/ui/data-table/DataTable.vue'
+
+type Parent = { id: number; name: string }
+type CategoryRow = {
+  id: number
+  name: string
+  parent_id: number | null
+  parent?: Parent | null
+  created_at: string
+}
+
+const props = defineProps<{
+  categories: CategoryRow[]
+  parents: Parent[]
+}>()
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Kategori',
-        href: category.index().url,
-    },
-];
-//
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { valueUpdater } from '@/lib/utils';
-import type {
-    ColumnDef,
-    ColumnFiltersState,
-    ExpandedState,
-    SortingState,
-    VisibilityState,
-} from '@tanstack/vue-table';
-import {
-    FlexRender,
-    getCoreRowModel,
-    getExpandedRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useVueTable,
-} from '@tanstack/vue-table';
-import { createReusableTemplate } from '@vueuse/core';
-import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-vue-next';
-import { h, ref } from 'vue';
-export interface Payment {
-    id: string;
-    kategori: string;
-    status: 'aktif' | 'non-aktif';
-    tglDibuat: string;
+  { title: 'Kategori', href: category.index().url },
+]
+
+const columns: ColumnDef<CategoryRow>[] = [
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    cell: ({ row }) => h('span', {}, row.original.id),
+  },
+  {
+    accessorKey: 'name',
+    header: 'Nama',
+    cell: ({ row }) => h('span', { class: 'font-medium' }, row.original.name),
+  },
+  {
+    accessorKey: 'parent',
+    header: 'Parent',
+    cell: ({ row }) => h('span', {}, row.original.parent?.name ?? '-'),
+  },
+  {
+    id: 'actions',
+    header: 'Aksi',
+    cell: ({ row }) => h('div', { class: 'flex justify-end gap-2' }, [
+      h(Button, {
+        variant: 'outline',
+        size: 'sm',
+        onClick: () => startEdit(row.original),
+      }, () => 'Edit'),
+      h(Button, {
+        variant: 'destructive',
+        size: 'sm',
+        onClick: () => openDeleteDialog(row.original),
+      }, () => 'Hapus'),
+    ]),
+  },
+]
+
+const mode = ref<'create' | 'edit'>('create')
+const editingId = ref<number | null>(null)
+
+const form = useForm<{
+  name: string
+  parent_id: number | null
+}>({
+  name: '',
+  parent_id: null,
+})
+
+const parentOptions = computed(() => props.parents)
+
+// Dialog state - must be before watch
+const isDialogOpen = ref(false)
+
+// Popover state for parent
+const parentOpen = ref(false)
+
+// Watch dialog close to reset popover
+watch(isDialogOpen, (open) => {
+  if (!open) parentOpen.value = false
+})
+
+function resetForm() {
+  parentOpen.value = false
+  form.reset()
+  form.clearErrors()
+  mode.value = 'create'
+  editingId.value = null
 }
-const data: Payment[] = [
-    {
-        id: 'm5gr84i9',
-        kategori: 'vest',
-        status: 'aktif',
-        tglDibuat: '7 Januari 2006',
-    },
-    {
-        id: '3u1reuv4',
-        kategori: 'bawahan',
-        status: 'non-aktif',
-        tglDibuat: '10 Januari 2006',
-    },
-    {
-        id: 'derv1ws0',
-        kategori: 'atasan',
-        status: 'non-aktif',
-        tglDibuat: '12 Januari 2006',
-    },
-    {
-        id: 'bhqecj4p',
-        kategori: 'one set',
-        status: 'aktif',
-        tglDibuat: '5 Januari 2006',
-    },
-];
-const [DefineTemplate] = createReusableTemplate<{
-    payment: {
-        id: string;
-    };
-    onExpand: () => void;
-}>();
-const columns: ColumnDef<Payment>[] = [
-    {
-        id: 'select',
-        header: ({ table }) =>
-            h(Checkbox, {
-                modelValue:
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate'),
-                'onUpdate:modelValue': (value) =>
-                    table.toggleAllPageRowsSelected(!!value),
-                ariaLabel: 'Select all',
-            }),
-        cell: ({ row }) =>
-            h(Checkbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value) => row.toggleSelected(!!value),
-                ariaLabel: 'Select row',
-            }),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
-        accessorKey: 'kategori',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Kategori', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('kategori')),
-    },
-    {
-        accessorKey: 'tglDibuat',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Tanggal Dibuat', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('tglDibuat')),
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Status', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
-        cell: ({ row }) => {
-            const status = row.getValue('status') as string;
 
-            return h(
-                Badge,
-                {
-                    variant: status === 'aktif' ? 'secondary' : 'success',
-                    // class:
-                    //     status === 'aktif'
-                    //         ? 'bg-green-500 text-white'
-                    //         : 'bg-gray-400 text-white',
-                },
-                () => (status === 'aktif' ? 'Aktif' : 'Nonaktif'),
-            );
-        },
+function openCreateDialog() {
+  resetForm()
+  isDialogOpen.value = true
+}
 
+function startEdit(row: CategoryRow) {
+  mode.value = 'edit'
+  editingId.value = row.id
+  form.name = row.name
+  form.parent_id = row.parent_id
+  form.clearErrors()
+  parentOpen.value = false
+  isDialogOpen.value = true
+}
+
+function submit() {
+  if (mode.value === 'create') {
+    form.post(category.store().url, {
+      preserveScroll: true,
+      onSuccess: () => {
+        resetForm()
+        isDialogOpen.value = false
+        toast.success('Kategori berhasil ditambahkan', { duration: 4000 })
+      },
+      onError: (errors) => {
+        toast.error('Gagal menambahkan kategori', { description: errors.message || 'Terjadi kesalahan.', duration: 4000 })
+      },
+    })
+    return
+  }
+
+  if (!editingId.value) return
+  form.put(category.update(editingId.value).url, {
+    preserveScroll: true,
+    onSuccess: () => {
+      resetForm()
+      isDialogOpen.value = false
+      toast.success('Kategori berhasil diperbarui', { duration: 6000 })
     },
-    {
-        id: 'actions',
-        enableHiding: false,
-        cell: ({ row }) => {
-            return h(
-                'div',
-                { class: 'flex gap-2 justify-end' },
-                [
-                    h(
-                        Button,
-                        {
-                            variant: 'outline',
-                            size: 'icon',
-                            onClick: () => editCategory(row.original.id),
-                        },
-                        () => h(Pencil, { class: 'h-4 w-4' }),
-                    ),
-                    h(
-                        Button,
-                        {
-                            variant: 'destructive',
-                            size: 'icon',
-                            onClick: () => deleteCategory(row.original.id),
-                        },
-                        () => h(Trash2, { class: 'h-4 w-4' }),
-                    ),
-                ],
-            );
-        },
+    onError: (errors) => {
+      toast.error('Gagal memperbarui kategori', { description: errors.message || 'Terjadi kesalahan.', duration: 6000 })
     },
-];
-const sorting = ref<SortingState>([]);
-const columnFilters = ref<ColumnFiltersState>([]);
-const columnVisibility = ref<VisibilityState>({});
-const rowSelection = ref({});
-const expanded = ref<ExpandedState>({});
-const table = useVueTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    onSortingChange: (updaterOrValue) => valueUpdater(updaterOrValue, sorting),
-    onColumnFiltersChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnFilters),
-    onColumnVisibilityChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnVisibility),
-    onRowSelectionChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, rowSelection),
-    onExpandedChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, expanded),
-    state: {
-        get sorting() {
-            return sorting.value;
-        },
-        get columnFilters() {
-            return columnFilters.value;
-        },
-        get columnVisibility() {
-            return columnVisibility.value;
-        },
-        get rowSelection() {
-            return rowSelection.value;
-        },
-        get expanded() {
-            return expanded.value;
-        },
+  })
+}
+
+// Alert Dialog state for delete confirmation
+const categoryToDelete = ref<CategoryRow | null>(null)
+const isDeleteDialogOpen = ref(false)
+const isDeleting = ref(false)
+
+function openDeleteDialog(row: CategoryRow) {
+  categoryToDelete.value = row
+  isDeleteDialogOpen.value = true
+}
+
+function confirmDelete() {
+  if (!categoryToDelete.value || isDeleting.value) return
+  
+  isDeleting.value = true
+  const categoryName = categoryToDelete.value.name;
+  router.delete(category.destroy(categoryToDelete.value.id).url, {
+    preserveScroll: true,
+    onSuccess: () => {
+      categoryToDelete.value = null
+      isDeleteDialogOpen.value = false
+      isDeleting.value = false
+      toast.success('Kategori berhasil dihapus', { description: `"${categoryName}" telah dihapus.`, duration: 4000 })
+      router.reload({ only: ['categories'] })
     },
-});
-function copy(id: string) {
-    navigator.clipboard.writeText(id);
+    onError: (errors) => {
+      isDeleting.value = false
+      toast.error('Gagal menghapus kategori', { description: errors.message || 'Terjadi kesalahan.' })
+    },
+  })
 }
 </script>
 
 <template>
-    <Head title="Kategori" />
+  <Head title="Kategori" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
-            <DefineTemplate v-slot="{ payment }">
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <Button variant="ghost" class="h-8 w-8 p-0">
-                            <span class="sr-only">Open menu</span>
-                            <MoreHorizontal class="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuItem @click="copy(payment.id)">
-                            Copy payment ID
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>View customer</DropdownMenuItem>
-                        <DropdownMenuItem
-                            >View payment details</DropdownMenuItem
-                        >
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </DefineTemplate>
-            <div class="w-full">
-                <div class="flex items-center py-4">
-                    <Input
-                        class="max-w-sm"
-                        placeholder="Cari Kategori..."
-                        :model-value="
-                            table.getColumn('kategori')?.getFilterValue() as string
-                        "
-                        @update:model-value="
-                            table.getColumn('kategori')?.setFilterValue($event)
-                        "
-                    />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="ml-auto">
-                                Kolom <ChevronDown class="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuCheckboxItem
-                                v-for="column in table
-                                    .getAllColumns()
-                                    .filter((column) => column.getCanHide())"
-                                :key="column.id"
-                                class="capitalize"
-                                :model-value="column.getIsVisible()"
-                                @update:model-value="
-                                    (value) => {
-                                        column.toggleVisibility(!!value);
-                                    }
-                                "
-                            >
-                                {{ column.id }}
-                            </DropdownMenuCheckboxItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <div class="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow
-                                v-for="headerGroup in table.getHeaderGroups()"
-                                :key="headerGroup.id"
-                            >
-                                <TableHead
-                                    v-for="header in headerGroup.headers"
-                                    :key="header.id"
-                                >
-                                    <FlexRender
-                                        v-if="!header.isPlaceholder"
-                                        :render="header.column.columnDef.header"
-                                        :props="header.getContext()"
-                                    />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <template v-if="table.getRowModel().rows?.length">
-                                <template
-                                    v-for="row in table.getRowModel().rows"
-                                    :key="row.id"
-                                >
-                                    <TableRow
-                                        :data-state="
-                                            row.getIsSelected() && 'selected'
-                                        "
-                                    >
-                                        <TableCell
-                                            v-for="cell in row.getVisibleCells()"
-                                            :key="cell.id"
-                                        >
-                                            <FlexRender
-                                                :render="
-                                                    cell.column.columnDef.cell
-                                                "
-                                                :props="cell.getContext()"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="row.getIsExpanded()">
-                                        <TableCell
-                                            :colspan="row.getAllCells().length"
-                                        >
-                                            {{ JSON.stringify(row.original) }}
-                                        </TableCell>
-                                    </TableRow>
-                                </template>
-                                <TableRow>
-                                    <TableCell
-                                        :colspan="columns.length"
-                                        class="text-center py-1 bg-muted/30"
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            class="gap-2"
-                                            @click="createCategory"
-                                        >
-                                            + Tambah Kategori
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </template>
-                            <TableRow v-else>
-                                <TableCell
-                                    :colspan="columns.length"
-                                    class="h-24 text-center"
-                                >
-                                    Pencarian tidak ditemukan. :(
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-                <div class="flex items-center justify-end space-x-2 py-4">
-                    <div class="flex-1 text-sm text-muted-foreground">
-                        {{ table.getFilteredSelectedRowModel().rows.length }} dari
-                        {{ table.getFilteredRowModel().rows.length }} baris
-                        terpilih.
-                    </div>
-                    <div class="space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanPreviousPage()"
-                            @click="table.previousPage()"
-                        >
-                            Sebelumnya
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="!table.getCanNextPage()"
-                            @click="table.nextPage()"
-                        >
-                            Selanjutnya
-                        </Button>
-                    </div>
-                </div>
-            </div>
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="flex flex-col gap-6 p-4">
+      <!-- Header with Add Button -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold">Kategori</h2>
+          <p class="text-sm text-muted-foreground">
+            Kelola kategori & sub-kategori (parent).
+          </p>
         </div>
-    </AppLayout>
+        <Button @click="openCreateDialog">
+          + Tambah Kategori
+        </Button>
+      </div>
+
+      <!-- Table -->
+      <DataTable
+        :columns="columns"
+        :data="props.categories"
+        search-key="name"
+        search-placeholder="Cari kategori..."
+      />
+
+      <!-- Create/Edit Dialog -->
+        <Dialog v-model:open="isDialogOpen">
+          <DialogContent class="sm:max-w-[420px]">
+            <DialogHeader>
+              <DialogTitle>{{ mode === 'create' ? 'Tambah Kategori' : 'Edit Kategori' }}</DialogTitle>
+              <DialogDescription>
+                Kelola kategori dan sub-kategori (parent).
+              </DialogDescription>
+            </DialogHeader>
+
+            <div class="space-y-4 py-4">
+              <div class="space-y-2">
+                <label class="text-sm font-medium">Nama</label>
+                <Input v-model="form.name" placeholder="Misal: Atasan / Bawahan / Outer" />
+                <div v-if="form.errors.name" class="text-sm text-red-600">
+                  {{ form.errors.name }}
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium">Parent (opsional)</label>
+                <Popover v-model:open="parentOpen">
+                  <PopoverTrigger as-child>
+                    <Button variant="outline" role="combobox" :aria-expanded="parentOpen" class="w-full justify-between">
+                      {{ parentOptions.find(p => p.id === form.parent_id)?.name || "- Tidak ada -" }}
+                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent class="w-full p-0" :avoid-collisions="true" :collision-padding="10">
+                    <Command>
+                      <CommandInput placeholder="Cari parent..." />
+                      <CommandList>
+                        <CommandEmpty>Tidak ada parent.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            :value="null"
+                            @select="() => { form.parent_id = null; parentOpen = false }"
+                          >
+                            - Tidak ada -
+                            <Check :class="cn('ml-auto h-4 w-4', form.parent_id === null ? 'opacity-100' : 'opacity-0')" />
+                          </CommandItem>
+                          <CommandItem
+                            v-for="p in parentOptions"
+                            :key="p.id"
+                            :value="p.id"
+                            @select="() => { form.parent_id = p.id; parentOpen = false }"
+                          >
+                            {{ p.name }}
+                            <Check :class="cn('ml-auto h-4 w-4', form.parent_id === p.id ? 'opacity-100' : 'opacity-0')" />
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <div v-if="form.errors.parent_id" class="text-sm text-red-600">
+                  {{ form.errors.parent_id }}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" @click="isDialogOpen = false" :disabled="form.processing">Batal</Button>
+              <Button :disabled="form.processing" @click="submit">
+                <Spinner v-if="form.processing" class="mr-2 size-4" />
+                {{ form.processing ? 'Menyimpan…' : 'Simpan' }}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <!-- Delete Confirmation Alert Dialog -->
+        <AlertDialog v-model:open="isDeleteDialogOpen">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Kategori?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah Anda yakin ingin menghapus kategori "{{ categoryToDelete?.name }}"?
+                <br />Semua sub-kategori akan kehilangan parent. Tindakan ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel @click="categoryToDelete = null" :disabled="isDeleting">Batal</AlertDialogCancel>
+              <AlertDialogAction 
+                @click="confirmDelete" 
+                :disabled="isDeleting"
+                class="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Spinner v-if="isDeleting" class="mr-2 size-4" />
+                {{ isDeleting ? 'Menghapus…' : 'Hapus' }}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+    </div>
+  </AppLayout>
 </template>

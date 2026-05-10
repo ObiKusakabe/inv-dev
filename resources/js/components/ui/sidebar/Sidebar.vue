@@ -56,7 +56,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
     class="group peer text-sidebar-foreground hidden md:block"
     data-slot="sidebar"
     :data-state="state"
-    :data-collapsible="state === 'collapsed' ? collapsible : ''"
+    :data-collapsible="state === 'collapsed' ? 'icon' : ''"
     :data-variant="variant"
     :data-side="side"
   >

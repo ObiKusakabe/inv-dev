@@ -1,42 +1,115 @@
 <script setup lang="ts">
+import type { LucideIcon } from 'lucide-vue-next'
+import { ChevronRight } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import Link from '@/components/Link.vue';
 import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { urlIsActive } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+} from '@/components/ui/sidebar'
 
-defineProps<{
+const page = usePage();
+
+const props = defineProps<{
     groups: {
         label: string;
-        items: NavItem[];
+        items: {
+            title: string;
+            href: string;
+            icon?: LucideIcon;
+            items?: {
+                title: string;
+                href: string;
+            }[];
+        }[];
     }[];
 }>();
 
-const page = usePage();
+// Check if URL is active
+const isUrlActive = (href: string): boolean => {
+    const currentUrl = page.url;
+    if (href === '/') {
+        return currentUrl === '/';
+    }
+    return currentUrl.startsWith(href);
+};
+
+// Track which items have been expanded (for lazy loading)
+const expandedItems = ref<Set<string>>(new Set());
+
+const handleOpenChange = (itemTitle: string, isOpen: boolean) => {
+    if (isOpen) {
+        expandedItems.value.add(itemTitle);
+    }
+};
 </script>
 
 <template>
-    <SidebarGroup v-for="group in groups"
-        :key="group.label" class="px-2 py-0">
-        <SidebarGroupLabel>{{ group.label}}</SidebarGroupLabel>
+    <SidebarGroup v-for="group in props.groups" :key="group.label">
+        <SidebarGroupLabel>{{ group.label }}</SidebarGroupLabel>
         <SidebarMenu>
-            <SidebarMenuItem v-for="item in group.items" :key="item.title">
-                <SidebarMenuButton
+            <template v-for="item in group.items" :key="item.title">
+                <!-- Menu with submenu - use Collapsible -->
+                <Collapsible
+                    v-if="item.items"
                     as-child
-                    :is-active="urlIsActive(item.href, page.url)"
-                    :tooltip="item.title"
+                    :default-open="isUrlActive(item.href)"
+                    class="group/collapsible"
+                    @update:open="(isOpen) => handleOpenChange(item.title, isOpen)"
                 >
-                    <Link :href="item.href" prefetch>
-                        <component :is="item.icon" />
-                        <span>{{ item.title }}</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <CollapsibleTrigger as-child>
+                            <SidebarMenuButton 
+                                :tooltip="item.title"
+                                :is-active="isUrlActive(item.href)"
+                            >
+                                <component :is="item.icon" v-if="item.icon" />
+                                <span class="group-data-[collapsible=icon]:hidden">{{ item.title }}</span>
+                                <ChevronRight
+                                    class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                />
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <SidebarMenuSub v-if="expandedItems.has(item.title) || isUrlActive(item.href)">
+                                <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
+                                    <SidebarMenuSubButton as-child>
+                                        <a :href="subItem.href">
+                                            <span>{{ subItem.title }}</span>
+                                        </a>
+                                    </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                            </SidebarMenuSub>
+                        </CollapsibleContent>
+                    </SidebarMenuItem>
+                </Collapsible>
+                
+                <!-- Menu without submenu - use Link directly -->
+                <SidebarMenuItem v-else>
+                    <SidebarMenuButton 
+                        as-child
+                        :tooltip="item.title"
+                        :is-active="isUrlActive(item.href)"
+                    >
+                        <Link :href="item.href">
+                            <component :is="item.icon" v-if="item.icon" />
+                            <span class="group-data-[collapsible=icon]:hidden">{{ item.title }}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </template>
         </SidebarMenu>
     </SidebarGroup>
 </template>

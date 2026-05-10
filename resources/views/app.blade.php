@@ -28,6 +28,46 @@
             html.dark {
                 background-color: oklch(0.145 0 0);
             }
+
+            /* Preloader styles */
+            #app-preloader {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(2px);
+                transition: opacity 0.3s ease;
+            }
+
+            html.dark #app-preloader {
+                background: rgba(23, 23, 23, 0.7);
+            }
+
+            #app-preloader.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .preloader-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid rgba(0, 0, 0, 0.1);
+                border-top-color: #3b82f6;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            html.dark .preloader-spinner {
+                border-color: rgba(255, 255, 255, 0.1);
+                border-top-color: #3b82f6;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
         </style>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
@@ -43,6 +83,27 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
+        {{-- Preloader - shows before Vue mounts --}}
+        <div id="app-preloader">
+            <div class="preloader-spinner"></div>
+        </div>
+
         @inertia
+
+        {{-- Hide preloader when Vue mounts --}}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hide preloader after Vue mounts (small delay to ensure render)
+                setTimeout(function() {
+                    const preloader = document.getElementById('app-preloader');
+                    if (preloader) {
+                        preloader.classList.add('hidden');
+                        setTimeout(function() {
+                            preloader.style.display = 'none';
+                        }, 300);
+                    }
+                }, 500);
+            });
+        </script>
     </body>
 </html>

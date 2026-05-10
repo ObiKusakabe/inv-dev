@@ -3,6 +3,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { update } from '@/routes/password';
@@ -47,12 +48,10 @@ const inputEmail = ref(props.email);
 
                 <div class="grid gap-2">
                     <Label for="password">Password</Label>
-                    <Input
+                    <PasswordInput
                         id="password"
-                        type="password"
                         name="password"
                         autocomplete="new-password"
-                        class="mt-1 block w-full"
                         autofocus
                         placeholder="Password"
                     />
@@ -63,12 +62,10 @@ const inputEmail = ref(props.email);
                     <Label for="password_confirmation">
                         Confirm Password
                     </Label>
-                    <Input
+                    <PasswordInput
                         id="password_confirmation"
-                        type="password"
                         name="password_confirmation"
                         autocomplete="new-password"
-                        class="mt-1 block w-full"
                         placeholder="Confirm password"
                     />
                     <InputError :message="errors.password_confirmation" />

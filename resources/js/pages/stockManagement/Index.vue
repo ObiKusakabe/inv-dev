@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import stockManagement from '@/routes/stockManagement';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -10,20 +10,33 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: stockManagement.index().url,
     },
 ];
-//
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'vue-sonner';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    // DropdownMenuItem,
-    // DropdownMenuLabel,
-    // DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-// import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -49,60 +62,106 @@ import {
     getSortedRowModel,
     useVueTable,
 } from '@tanstack/vue-table';
-import { createReusableTemplate } from '@vueuse/core';
-import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-vue-next';
-import { h, ref } from 'vue';
-export interface Payment {
-    id: string;
-    cabang: string;
-    pakaian: string;
-    tglUpdate: string;
-    stok: number;
-}
-const data: Payment[] = [
-    {
-        id: 'm5gr84i9',
-        cabang: 'Nanana 1',
-        pakaian: 'one set vest linen',
-        tglUpdate: '7 Januari 2006',
-        stok: 2,
-    },
-    {
-        id: '3u1reuv4',
-        cabang: 'Nanana 2',
-        pakaian: 'midi bhn twill+vest linen',
-        tglUpdate: '10 Januari 2006',
-        stok: 1,
-    },
-    {
-        id: 'derv1ws0',
-        cabang: 'Nanana 2',
-        pakaian: 'one set vest kulot jeans',
-        tglUpdate: '12 Januari 2006',
-        stok: 4,
-    },
-    {
-        id: '5kma53ae',
-        cabang: 'Nanana 1',
-        pakaian: 'one set kemeja+vest kemeja',
-        tglUpdate: '9 Januari 2006',
-        stok: 2,
-    },
-    {
-        id: 'bhqecj4p',
-        cabang: 'Nanana 2',
-        pakaian: 'kemeja bahan linen',
-        tglUpdate: '5 Januari 2006',
-        stok: 9,
-    },
-];
-const [] = createReusableTemplate<{
-    payment: {
-        id: string;
+import { ArrowUpDown, ChevronDown, Package, Plus, Minus, History } from 'lucide-vue-next';
+import { h, ref, computed } from 'vue';
+
+// Types
+type StockRow = {
+    id: number;
+    product_id: number;
+    branch_id: number;
+    stock: number;
+    min_stock: number;
+    product: {
+        id: number;
+        name: string;
+        image: string | null;
     };
-    onExpand: () => void;
+    branch: {
+        id: number;
+        name: string;
+        code: string;
+    };
+};
+
+type Branch = {
+    id: number;
+    name: string;
+    code: string;
+};
+
+// Props
+const props = defineProps<{
+    stocks: StockRow[];
+    branches: Branch[];
+    currentBranchId: number | null;
+    filters: {
+        branch_id?: number | null;
+    };
 }>();
-const columns: ColumnDef<Payment>[] = [
+
+// Filter state
+const selectedBranch = ref<number | null>(props.filters.branch_id || null);
+
+function applyFilter() {
+    router.get(
+        stockManagement.index().url,
+        { branch_id: selectedBranch.value },
+        { preserveScroll: true }
+    );
+}
+
+// Dialog state for stock update
+const isUpdateDialogOpen = ref(false);
+const selectedStock = ref<StockRow | null>(null);
+const stockAdjustment = ref(0);
+const stockReason = ref('');
+
+function openUpdateDialog(row: StockRow) {
+    selectedStock.value = row;
+    stockAdjustment.value = 0;
+    stockReason.value = '';
+    isUpdateDialogOpen.value = true;
+}
+
+function adjustStock(amount: number) {
+    stockAdjustment.value += amount;
+}
+
+function submitStockUpdate() {
+    if (!selectedStock.value || stockAdjustment.value === 0) return;
+    
+    const toastId = toast.loading('Memperbarui stok...')
+    
+    router.post(
+        stockManagement.update(selectedStock.value.id).url,
+        {
+            adjustment: stockAdjustment.value,
+            reason: stockReason.value,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.dismiss(toastId)
+                setTimeout(() => {
+                    toast.success('Stok berhasil diperbarui')
+                }, 100)
+                isUpdateDialogOpen.value = false;
+                selectedStock.value = null;
+            },
+            onError: (errors) => {
+                toast.dismiss(toastId)
+                const errorMessage = typeof errors === 'object' ? Object.values(errors).flat().join(', ') : 'Terjadi kesalahan'
+                setTimeout(() => {
+                    toast.error('Gagal memperbarui stok', { description: errorMessage })
+                }, 100)
+            }
+        }
+    );
+}
+
+// Table columns
+const columns: ColumnDef<StockRow>[] = [
     {
         id: 'select',
         header: ({ table }) =>
@@ -124,68 +183,60 @@ const columns: ColumnDef<Payment>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: 'cabang',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Cabang', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
+        accessorKey: 'product',
+        header: 'Produk',
+        cell: ({ row }) => {
+            const product = row.original.product;
+            return h('div', { class: 'flex items-center gap-3' }, [
+                product.image
+                    ? h('img', {
+                          src: '/storage/' + product.image,
+                          class: 'h-10 w-10 rounded-md object-cover border',
+                          alt: product.name,
+                      })
+                    : h('div', { class: 'h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-400' }, 
+                        h(Package, { class: 'h-5 w-5' })
+                    ),
+                h('div', { class: 'font-medium' }, product.name),
+            ]);
         },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('cabang')),
     },
     {
-        accessorKey: 'pakaian',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Pakaian', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
+        accessorKey: 'branch',
+        header: 'Cabang',
         cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('pakaian')),
+            h('div', {}, [
+                h('div', { class: 'font-medium' }, row.original.branch.name),
+                h('div', { class: 'text-xs text-muted-foreground' }, row.original.branch.code),
+            ]),
     },
     {
-        accessorKey: 'tglUpdate',
+        accessorKey: 'stock',
         header: ({ column }) => {
             return h(
                 Button,
                 {
                     variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
                 },
-                () => ['Tanggal Update', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
+                () => ['Stok', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
-        cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('tglUpdate')),
+        cell: ({ row }) => {
+            const stock = row.original.stock;
+            const minStock = row.original.min_stock;
+            const isLow = stock <= minStock;
+            return h(Badge, { 
+                variant: isLow ? 'destructive' : 'default',
+                class: 'font-mono'
+            }, () => stock);
+        },
     },
     {
-        accessorKey: 'stok',
-        header: ({ column }) => {
-            return h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () =>
-                        column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Stok', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            );
-        },
+        accessorKey: 'min_stock',
+        header: 'Min. Stok',
         cell: ({ row }) =>
-            h('div', { class: 'capitalize' }, row.getValue('stok')),
+            h('div', { class: 'text-muted-foreground' }, row.original.min_stock),
     },
     {
         id: 'actions',
@@ -199,187 +250,150 @@ const columns: ColumnDef<Payment>[] = [
                         Button,
                         {
                             variant: 'outline',
-                            size: 'icon',
-                            onClick: () => editCategory(row.original.id),
+                            size: 'sm',
+                            onClick: () => openUpdateDialog(row.original),
                         },
-                        () => h(Pencil, { class: 'h-4 w-4' }),
+                        () => [h(Plus, { class: 'h-4 w-4 mr-1' }), 'Update']
                     ),
-                    h(
-                        Button,
-                        {
-                            variant: 'destructive',
-                            size: 'icon',
-                            onClick: () => deleteCategory(row.original.id),
-                        },
-                        () => h(Trash2, { class: 'h-4 w-4' }),
-                    ),
-                ],
+                ]
             );
         },
     },
 ];
+
 const sorting = ref<SortingState>([]);
 const columnFilters = ref<ColumnFiltersState>([]);
 const columnVisibility = ref<VisibilityState>({});
 const rowSelection = ref({});
-const expanded = ref<ExpandedState>({});
+
 const table = useVueTable({
-    data,
+    data: props.stocks,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    onSortingChange: (updaterOrValue) => valueUpdater(updaterOrValue, sorting),
-    onColumnFiltersChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnFilters),
-    onColumnVisibilityChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, columnVisibility),
-    onRowSelectionChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, rowSelection),
-    onExpandedChange: (updaterOrValue) =>
-        valueUpdater(updaterOrValue, expanded),
+    onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+    onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+    onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+    onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
     state: {
-        get sorting() {
-            return sorting.value;
-        },
-        get columnFilters() {
-            return columnFilters.value;
-        },
-        get columnVisibility() {
-            return columnVisibility.value;
-        },
-        get rowSelection() {
-            return rowSelection.value;
-        },
-        get expanded() {
-            return expanded.value;
-        },
+        get sorting() { return sorting.value },
+        get columnFilters() { return columnFilters.value },
+        get columnVisibility() { return columnVisibility.value },
+        get rowSelection() { return rowSelection.value },
     },
 });
-// function copy(id: string) {
-//     navigator.clipboard.writeText(id);
-// }
-
-function editCategory(id: string) {
-    console.log('Edit', id);
-}
-
-function deleteCategory(id: string) {
-    console.log('Delete', id);
-}
 </script>
 
 <template>
-    <Head title="Stok" />
+    <Head title="Manajemen Stok" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
-            <div class="w-full">
-                <div class="flex items-center py-4">
+        <div class="flex flex-col gap-6 p-4">
+            <!-- Header & Filter -->
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold">Manajemen Stok</h2>
+                    <p class="text-sm text-muted-foreground">
+                        Kelola stok produk per cabang.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <Select v-model="selectedBranch" @update:model-value="applyFilter">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Semua Cabang" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="null">Semua Cabang</SelectItem>
+                            <SelectItem v-for="branch in branches" :key="branch.id" :value="branch.id">
+                                {{ branch.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="rounded-xl border">
+                <div class="flex items-center justify-between p-4">
                     <Input
+                        placeholder="Cari produk..."
+                        :model-value="table.getColumn('product')?.getFilterValue() as string"
                         class="max-w-sm"
-                        placeholder="Cari Pakaian..."
-                        :model-value="
-                            table.getColumn('pakaian')?.getFilterValue() as string
-                        "
-                        @update:model-value="
-                            table.getColumn('pakaian')?.setFilterValue($event)
-                        "
+                        @update:model-value="table.getColumn('product')?.setFilterValue($event)"
                     />
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                             <Button variant="outline" class="ml-auto">
-                                Kolom <ChevronDown class="ml-2 h-4 w-4" />
+                                Columns <ChevronDown class="ml-2 h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuCheckboxItem
-                                v-for="column in table
-                                    .getAllColumns()
-                                    .filter((column) => column.getCanHide())"
+                                v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
                                 :key="column.id"
                                 class="capitalize"
                                 :model-value="column.getIsVisible()"
-                                @update:model-value="
-                                    (value) => {
-                                        column.toggleVisibility(!!value);
-                                    }
-                                "
+                                @update:model-value="(value) => column.toggleVisibility(!!value)"
                             >
                                 {{ column.id }}
                             </DropdownMenuCheckboxItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                <div class="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow
-                                v-for="headerGroup in table.getHeaderGroups()"
-                                :key="headerGroup.id"
+
+                <Table>
+                    <TableHeader>
+                        <TableRow
+                            v-for="headerGroup in table.getHeaderGroups()"
+                            :key="headerGroup.id"
+                        >
+                            <TableHead
+                                v-for="header in headerGroup.headers"
+                                :key="header.id"
                             >
-                                <TableHead
-                                    v-for="header in headerGroup.headers"
-                                    :key="header.id"
+                                <FlexRender
+                                    v-if="!header.isPlaceholder"
+                                    :render="header.column.columnDef.header"
+                                    :props="header.getContext()"
+                                />
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <template v-if="table.getRowModel().rows?.length">
+                            <TableRow
+                                v-for="row in table.getRowModel().rows"
+                                :key="row.id"
+                                :data-state="row.getIsSelected() && 'selected'"
+                            >
+                                <TableCell
+                                    v-for="cell in row.getVisibleCells()"
+                                    :key="cell.id"
                                 >
                                     <FlexRender
-                                        v-if="!header.isPlaceholder"
-                                        :render="header.column.columnDef.header"
-                                        :props="header.getContext()"
+                                        :render="cell.column.columnDef.cell"
+                                        :props="cell.getContext()"
                                     />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <template v-if="table.getRowModel().rows?.length">
-                                <template
-                                    v-for="row in table.getRowModel().rows"
-                                    :key="row.id"
-                                >
-                                    <TableRow
-                                        :data-state="
-                                            row.getIsSelected() && 'selected'
-                                        "
-                                    >
-                                        <TableCell
-                                            v-for="cell in row.getVisibleCells()"
-                                            :key="cell.id"
-                                        >
-                                            <FlexRender
-                                                :render="
-                                                    cell.column.columnDef.cell
-                                                "
-                                                :props="cell.getContext()"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="row.getIsExpanded()">
-                                        <TableCell
-                                            :colspan="row.getAllCells().length"
-                                        >
-                                            {{ JSON.stringify(row.original) }}
-                                        </TableCell>
-                                    </TableRow>
-                                </template>
-                            </template>
-                            <TableRow v-else>
-                                <TableCell
-                                    :colspan="columns.length"
-                                    class="h-24 text-center"
-                                >
-                                    Pencarian tidak ditemukan. :(
                                 </TableCell>
                             </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-                <div class="flex items-center justify-end space-x-2 py-4">
+                        </template>
+                        <template v-else>
+                            <TableRow>
+                                <TableCell :colspan="columns.length" class="h-24 text-center">
+                                    Tidak ada data stok.
+                                </TableCell>
+                            </TableRow>
+                        </template>
+                    </TableBody>
+                </Table>
+
+                <div class="flex items-center justify-end gap-2 p-4 border-t">
                     <div class="flex-1 text-sm text-muted-foreground">
-                        {{ table.getFilteredSelectedRowModel().rows.length }} dari
-                        {{ table.getFilteredRowModel().rows.length }} baris
-                        terpilih.
+                        {{ table.getFilteredSelectedRowModel().rows.length }} of
+                        {{ table.getFilteredRowModel().rows.length }} row(s) selected.
                     </div>
                     <div class="space-x-2">
                         <Button
@@ -388,7 +402,7 @@ function deleteCategory(id: string) {
                             :disabled="!table.getCanPreviousPage()"
                             @click="table.previousPage()"
                         >
-                            Sebelumnya
+                            Previous
                         </Button>
                         <Button
                             variant="outline"
@@ -396,11 +410,66 @@ function deleteCategory(id: string) {
                             :disabled="!table.getCanNextPage()"
                             @click="table.nextPage()"
                         >
-                            Selanjutnya
+                            Next
                         </Button>
                     </div>
                 </div>
             </div>
+
+            <!-- Update Stock Dialog -->
+            <Dialog v-model:open="isUpdateDialogOpen">
+                <DialogContent class="sm:max-w-[420px]">
+                    <DialogHeader>
+                        <DialogTitle>Update Stok</DialogTitle>
+                        <DialogDescription>
+                            {{ selectedStock?.product.name }} - {{ selectedStock?.branch.name }}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div class="space-y-4 py-4">
+                        <div class="flex items-center justify-center gap-4">
+                            <Button variant="outline" size="icon" @click="adjustStock(-10)">
+                                -10
+                            </Button>
+                            <Button variant="outline" size="icon" @click="adjustStock(-1)">
+                                <Minus class="h-4 w-4" />
+                            </Button>
+                            <div class="text-2xl font-bold w-20 text-center">
+                                {{ stockAdjustment > 0 ? '+' : '' }}{{ stockAdjustment }}
+                            </div>
+                            <Button variant="outline" size="icon" @click="adjustStock(1)">
+                                <Plus class="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" @click="adjustStock(10)">
+                                +10
+                            </Button>
+                        </div>
+
+                        <div class="text-center text-sm text-muted-foreground">
+                            Stok saat ini: <span class="font-medium">{{ selectedStock?.stock }}</span>
+                            →
+                            <span class="font-medium" :class="stockAdjustment + (selectedStock?.stock || 0) < 0 ? 'text-red-600' : ''">
+                                {{ (selectedStock?.stock || 0) + stockAdjustment }}
+                            </span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium">Alasan perubahan (opsional)</label>
+                            <Input v-model="stockReason" placeholder="Misal: Stok masuk dari supplier, rusak, hilang..." />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" @click="isUpdateDialogOpen = false">Batal</Button>
+                        <Button 
+                            :disabled="stockAdjustment === 0 || (selectedStock?.stock || 0) + stockAdjustment < 0"
+                            @click="submitStockUpdate"
+                        >
+                            Simpan Perubahan
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     </AppLayout>
 </template>

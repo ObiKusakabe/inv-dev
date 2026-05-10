@@ -9,7 +9,8 @@ import {
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
-import { Link, router } from '@inertiajs/vue3';
+import Link from '@/components/Link.vue';
+import { router } from '@inertiajs/vue3';
 import { BookOpen, LogOut, Settings, Phone } from 'lucide-vue-next';
 
 interface Props {
@@ -32,7 +33,7 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="edit()" prefetch as="button">
+            <Link class="block w-full" :href="edit()" as="button">
                 <Settings class="mr-2 h-4 w-4" />
                 Pengaturan
             </Link>

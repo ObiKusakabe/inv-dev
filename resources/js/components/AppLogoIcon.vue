@@ -13,7 +13,7 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img src="../../../public/images/nanana64x.png" alt="">
+    <img src="../../../public/images/nanana64x.png" alt="" width="64" height="64">
 </template>
 <!-- <template>
     <svg

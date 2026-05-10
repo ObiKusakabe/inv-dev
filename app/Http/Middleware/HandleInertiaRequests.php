@@ -6,6 +6,19 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+use Inertia\Inertia;
+use App\Models\Branch;
+use Illuminate\Support\Facades\Storage;
+
+Inertia::share([
+  'branches' => fn () => Branch::query()
+      ->where('is_active', true)
+      ->select('id', 'name', 'code')
+      ->orderBy('name')
+      ->get(),
+  'currentBranchId' => fn () => session('current_branch_id'),
+]);
+
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -43,9 +56,17 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    ...$request->user()->toArray(),
+                    'avatar_url' => $request->user()->avatar ? $request->getSchemeAndHttpHost() . Storage::url($request->user()->avatar) : null,
+                ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'branches' => fn () => Branch::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code']),
+            'currentBranchId' => fn () => session('current_branch_id'),
         ];
     }
 }
