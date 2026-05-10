@@ -84,36 +84,6 @@ jalankan kode ini di terminal CMD/GitBash
   npm install
 ```
 
-- Setup Environment
-
-```bash
-  cp .env.example .env
-```
-
-- Generate App Key
-
-```bash
-  php artisan key:generate
-```
-
-- Setup Database
-
-  Buka `.env` dan konfigurasi database:
-  ```env
-  DB_CONNECTION=mysql
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  DB_DATABASE=inv_dev
-  DB_USERNAME=root
-  DB_PASSWORD=
-  ```
-
-- Jalankan Migrasi & Seeder
-
-```bash
-  php artisan migrate:fresh --seed
-```
-
 - Jalankan server
 
 ```bash
